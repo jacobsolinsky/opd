@@ -1,0 +1,11 @@
+{% extends "dictionary/base.html" %}
+<h1 class="page-title">Key to Regions</h1>
+<div>Throughout the Ojibwe People's Dictionary, region codes mark an origin community for each audio and for forms of words that are specific to certain communities. Because the Ojibwe People's Dictionary encompasses several dialects and many Ojibwe communities, the region codes are a guide to determining pronunciation and usage within a specific community.&nbsp;
+    <br>
+    <br>
+</div>
+<div><strong>Region ID&nbsp;</strong>&nbsp;|&nbsp;<strong>Region Name&nbsp;</strong>&nbsp;|&nbsp;<strong>Description</strong>
+    {% block content %}
+    <br>
+    <br>{region.code}&nbsp; | {region.abbrev}&nbsp; | {region.description}
+  {% endblock content %}  

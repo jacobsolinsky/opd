@@ -1,0 +1,30 @@
+<div class="voice row full-row">
+  <div class="col-lg-12">
+    <h2>
+      {{speaker.primary_name}}
+      <div class="speaker-initials">
+        {{speaker.initials}}
+      </div>
+    </h2>
+    <img class="voice-image" src="{{speaker.image.src}}" alt="{{speaker.image.alt}}">
+    <div>
+      <div class="voice-info-field">
+        <span class="voice-tag">Ojibwe Name:</span>
+        <span class="voice-field">{{speaker.ojibwe_name}}</span>
+      </div>
+      <div class="voice-info-field">
+        <span class="voice-tag">English Name:</span>
+        <span class="voice-field">{{speaker.english_name}}</span>
+      </div>
+      <div class="voice-info-field">
+        <span class="voice-tag">Community:</span>
+        <span class="voice-field">{{speaker.community}}</span>
+      </div>
+      <div class="voice-info-field">
+        <span class="voice-tag">Region:</span>
+        <span class="voice-field">{{speaker.region}}</span>
+      </div>
+      {{speaker.html}}
+    </div>
+  </div>
+</div>

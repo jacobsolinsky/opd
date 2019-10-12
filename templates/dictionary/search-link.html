@@ -1,0 +1,70 @@
+
+<div class="main-entry-search">
+  <div class="english-search-main-entry">
+  <span class="main-entry-title">
+
+      <span class="lemma"><a href="{{entry.url}}">{{entry.head_lemma}}</a></span>
+      <span class="badge badge-oj" data-toggle="tooltip" data-placement="right" title="" data-original-title="{{entry.part_of_speech.full}}">
+        {{entry.part_of_speech.abbrev}}
+      </span>
+      {% for region in entry.region.all %}
+      <span class="badge badge-oj" data-toggle="tooltip" data-placement="right" title="" data-original-title="{{region.full}}">{{region.abbrev}}</span>
+      {% endfor %}
+
+
+    </span>
+    {% if entry.gloss %}
+    {{entry.gloss | safe}}
+    {% endif %}
+    {% if entry.head_audio or entry.imageresource_set or entry.videoresource_set or entry.documentresource_set %}
+    <span class="badges">
+      {% if entry.head_audio %}
+      <span class="glyphicon glyphicon-volume-up"></span>
+      {% endif %}
+      {% if entry.imageresource_set.all %}
+      <span class="glyphicon glyphicon-camera"></span>
+      {% endif %}
+      {% if entry.videoresource_set.all %}
+      <span class="glyphicon glyphicon-facetime-video"></span>
+      {% endif %}
+      {% if entry.documentresource_set.all %}
+      <span class="glyphicon glyphicon-paperclip"></span>
+      {% endif %}
+    </span>
+      {% endif %}
+    </span>
+
+  {% if entry.species %}
+  <p></p>
+  [
+  {{entry.species | safe}}
+  ]
+  {% endif %}
+
+</div>
+{% if entry.paired_with_inv.all or entry.see_also_inv.all or entry.redirect_inv.all %}
+  <p class="relations">
+    {% if entry.paired_with_inv.all %}
+      <em>Paired with:</em>
+      {% for pw in entry.paired_with_inv.all %}
+        {% include "dictionary/small-link.html" with entry=pw %}
+      {% if not forloop.last %};{% endif %}
+      {% endfor %}
+    {% endif %}
+    {% if entry.see_also_inv.all %}
+      <em>See also:</em>
+      {% for pw in entry.see_also_inv.all %}
+        {% include "dictionary/small-link.html" with entry=pw %}
+      {% if not forloop.last %};{% endif %}
+      {% endfor %}
+    {% endif %}
+    {% if entry.redirect_inv.all %}
+      ►
+      {% for pw in entry.redirect_inv.all %}
+        {% include "dictionary/small-link.html" with entry=pw %}
+      {% if not forloop.last %};{% endif %}
+      {% endfor %}
+    {% endif %}
+  </p>
+  {% endif %}
+</div>

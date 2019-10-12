@@ -1,0 +1,12 @@
+<span class="main-entry-title">
+
+      <span class="lemma"><a href="{{entry.url}}">{{entry.head_lemma}}</a></span>
+      <span class="badge badge-oj" data-toggle="tooltip" data-placement="right" title="" data-original-title="{{entry.part_of_speech.full}}">
+        {{entry.part_of_speech.abbrev}}
+      </span>
+      {% for r in entry.region.all %}
+      <span class="badge badge-oj" data-toggle="tooltip" data-placement="right" title="" data-original-title="{{r.full}}">
+                      {{r.abbrev}}
+                    </span>
+      {% endfor %}
+    </span>

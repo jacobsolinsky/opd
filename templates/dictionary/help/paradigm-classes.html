@@ -1,0 +1,33 @@
+{% extends "dictionary/base.html" %}
+{% block content %}
+<h1 class="page-title">Paradigm Classes</h1>
+<div class="view-header">
+    <p>Paradigm classes are a way of grouping similar words. This dictionary groups words into paradigm classes according to how the words pattern when inflected. Understanding how to use one word in a paradigm class, allows one to apply that knowledge to other words in the same class.</p>
+    <p>Below are the paradigm classes used in this Dictionary.</p>
+</div>
+<div class="view-content">
+    <table class="table table-hover">
+        <thead>
+            <tr>
+                <th class="views-field views-field-field-lookup-abbreviation-value">
+                    Abbreviation </th>
+                <th class="views-field views-field-field-label-value">
+                    Label </th>
+            </tr>
+        </thead>
+        <tbody>
+        	{% for paradigm_class in paradigm_classes %}
+           <tr class="{% if forloop.first 'odd views-row-first' %}{% elif forloop.last 'even views-row-last' %}{% else %}
+                {% cycle 'even' 'odd'%}{% endif %}">
+                <td class="views-field views-field-field-lookup-abbreviation-value">
+                    {{paradigm_class.abbrev}}
+                </td>
+                <td class="views-field views-field-field-label-value">
+                    {{paradigm_class.full}}
+                </td>
+          	</tr>
+			{% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock content %}

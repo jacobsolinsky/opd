@@ -1,0 +1,47 @@
+{% extends "dictionary/base.html" %}
+{% block content %}
+<div data-react-class="AdvancedSearchForm" data-react-props="{&quot;type&quot;:null,&quot;field&quot;:null,&quot;scope&quot;:null,&quot;q&quot;:null}">
+  <div class="panel panel-oj" data-reactid=".0">
+    <div class="panel-heading" data-reactid=".0.0">
+      <h4 class="panel-title" data-reactid=".0.0.0">Advanced Search</h4>
+    </div><div class="panel-body" data-reactid=".0.1">
+      <form action="/advanced_search" class="form-inline" data-reactid=".0.1.0">
+        <div class="form-group" data-reactid=".0.1.0.0">
+          <span data-reactid=".0.1.0.0.0">Search </span>
+          <select class="form-control" name="type" data-reactid=".0.1.0.0.1">
+            <option selected="" value="main_entry" data-reactid=".0.1.0.0.1.0">Ojibwe Entries</option>
+            <option value="keyword" data-reactid=".0.1.0.0.1.1">English Keywords</option>
+            <option value="word_part" data-reactid=".0.1.0.0.1.2">Word Parts</option>
+          </select>
+        </div>
+        <div class="form-group" data-reactid=".0.1.0.1">
+          <span data-reactid=".0.1.0.1.0">&nbsp;by </span>
+          <select class="form-control" name="field" data-reactid=".0.1.0.1.1">
+            <option value="lemma" data-reactid=".0.1.0.1.1.$lemma">Lemma</option>
+            <option value="stem" data-reactid=".0.1.0.1.1.$stem">Stem</option>
+          </select>
+        </div>
+        <div class="form-group" data-reactid=".0.1.0.2">
+          <span data-reactid=".0.1.0.2.0">&nbsp;which </span>
+          <select class="form-control" name="scope" data-reactid=".0.1.0.2.1">
+            <option value="starts_with" data-reactid=".0.1.0.2.1.0">start with</option>
+            <option value="exact" data-reactid=".0.1.0.2.1.1">exact match</option>
+            <option value="contains" data-reactid=".0.1.0.2.1.2">contain</option>
+            <option value="ends_with" data-reactid=".0.1.0.2.1.3">end with</option>
+          </select>
+          <span data-reactid=".0.1.0.2.2">&nbsp;</span>
+        </div>
+        <div class="form-group" data-reactid=".0.1.0.3">
+          <input type="text" placeholder="Search" class="form-control" name="q" size="14" data-reactid=".0.1.0.3.0">
+        </div>
+        <div class="pull-right" data-reactid=".0.1.0.4">
+          <input type="submit" name="submit" value="Search" class="btn-oj form-control" data-reactid=".0.1.0.4.0">
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+{% for entry in entries %}
+{% include "dictionary/search-link.html" with entry=entry only %}
+{% endfor %}
+{% endblock content %}

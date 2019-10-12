@@ -1,0 +1,12 @@
+{%extends "dictionary/base.html"}
+{% block content %}
+<h1 class="page-title">Ojibwe Language News</h1>
+{% for news_post in news_posts %}
+<h3 style="text-align: left;"><strong>
+  {news_post.title}
+</strong>
+{news_post.date}
+</h3>
+{news_post.html}
+{% endfor %}
+{% endblock content %}

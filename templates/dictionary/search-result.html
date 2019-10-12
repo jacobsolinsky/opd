@@ -1,0 +1,6 @@
+{% extends "dictionary/base.html" %}
+{% block content %}
+{% for entry in entries %}
+{% include "dictionary/search-link.html" with entry=entry only %}
+{% endfor %}
+{% endblock content %}

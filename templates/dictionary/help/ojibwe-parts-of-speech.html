@@ -1,0 +1,54 @@
+{% extends "dictionary/base.html" %}
+{% block content %}
+<h1 class="page-title">Key to Ojibwe parts of speech</h1>
+    <div class="view-header">
+        <p>The parts of speech (or classes of words) in Ojibwe are nouns, pronouns, verbs, preverbs, adverbs and particles. Each of these parts of speech can be further divided into subclasses that describe a particular use within the language.</p>
+        <p><b>Adverbs</b> specify such things as time, place, manner or degree. They typically modify verbs and verb clauses. Examples: <a href="http://ojibwe.lib.umn.edu/main-entry/gigizheb-adv-tmp">gigizheb</a>, <a href="http://ojibwe.lib.umn.edu/main-entry/agwajiing-adv-loc">agwajiing</a>, <a href="http://ojibwe.lib.umn.edu/main-entry/aapiji-adv-deg">aapiji</a>. Adverbs have recently been differentiated from particles in Ojibwemowin, and are in some places, still referred to as particles.</p>
+        <p><b>Nouns</b> name things, beings, and abstractions. For example: <a href="https://ojibwe.lib.umn.edu/main-entry/waakaa-igan-ni">waakaa’igan</a>, <a href="http://ojibwe.lib.umn.edu/main-entry/animosh-na">animosh</a>, <a href="https://ojibwe.lib.umn.edu/main-entry/zaagi-idiwin-ni">zaagi’idiwin</a>. Nouns are inflected; that is, they take on affixes – prefixes and/or suffixes – that give grammatical information about them. For example, affixes can indicate whether a noun is animate or inanimate (gender), whether it is plural (number), and how it is related to other parts of a phrase or sentence (e.g., obviative or locative form).</p>
+        <p><b>Particles</b> are uninflected words and can be divided into several subclasses. Some particles always occur in a certain position in the sentence. For example, the question particle is used with questions that are typically answered with yes or no, and appear after the first word in a sentence. Example: <a href="http://ojibwe.lib.umn.edu/main-entry/ina-pc-disc">ina</a>.</p>
+        <p><b>Preverbs</b> are prefixes added to verbs and nouns (where they are sometimes called pre-nouns) to indicate secondary ideas such as time and direction. They create thousands more word forms for each word stem. Preverbs are not words by themselves, though many preverbs have corresponding stand-alone forms. Some preverbs are word parts that occur only as preverbs; these include tense and subordinating prefixes. Other preverbs are related in form and meaning to verb roots.</p>
+        <p><b>Preverbs</b> are written with a trailing hyphen to separate them from the following verb or from another preverb. Inflectional prefixes and initial change processes that would normally occur on a verb, take place on preverbs when present. More than one preverb can be used with a verb. And the preverbs follow a specific order when more than one preverb is present.</p>
+        <p><b>Pronouns</b> typically stand in the place of nouns. However, in Ojibwemowin, the equivalent concept is often expressed in the form of an affix on nouns or verbs. Pronouns corresponding to English equivalents of personal pronouns, such as me or you, are often used for emphasis purposes in Ojibwe.</p>
+        <p><b>Verbs</b> refer to states of being (condition, quality, etc.) or to actions. Examples: <a href="http://ojibwe.lib.umn.edu/main-entry/michaa-vii">michaa</a>, <a href="http://ojibwe.lib.umn.edu/main-entry/aabajitoon-vti2">aabajitoon</a>. Verbs, like nouns, are inflected, taking on affixes (prefixes and suffixes) that convey grammatical information. For example, the affixes on a verb can indicate number, tense (the time of the action), and the relationship of the verb to other parts of a phrase or sentence.</p>
+        <p>The verb is the main feature of most sentences in Ojibwe; nothing more is needed to make a sentence. Noun phrases and adverbs and other particles may occur with the verb, but are not essential.</p>
+        <p>Below are the abbreviations used on this website to describe parts of speech, along with a brief explanation.</p>
+    </div>
+
+    <div class="view-content">
+        <table class="table table-hover">
+            <thead>
+                <tr>
+                    <th class="views-field views-field-field-lookup-abbreviation-value">
+                        Abbreviation </th>
+                    <th class="views-field views-field-field-label-value">
+                        Label </th>
+                    <th class="views-field views-field-field-lookup-description-value">
+                        Description </th>
+                    <th class="views-field views-field-field-word-part-usage-value">
+                        Usage Note </th>
+                </tr>
+            </thead>
+            <tbody>
+              {% for pos in parts_of_speech %}
+                <tr class="{% if forloop.first%}odd views-row-first{% elif forloop.last%}even views-row-last{% else %}
+                {% cycle 'even' 'odd'%}{% endif %}">
+                    <td class="views-field views-field-field-lookup-abbreviation-value">
+                        <a name="{{pos.abbrev}}"></a><a href="{{pos.section_url}}">{{pos.abbrev}}</a>
+                    </td>
+                    <td class="views-field views-field-field-label-value">
+                        {{pos.full}}
+                    </td>
+                    <td class="views-field views-field-field-lookup-description-value">
+                        {{pos.description}}
+                    </td>
+                    <td class="views-field views-field-field-word-part-usage-value">
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    <div class="view-footer">
+        Thanks to Rand Valentine for his grammatical description of Nishnaabemowin from which we have taken many grammatical terms and descriptions.
+      </div>
+{% endblock content %}

@@ -1,0 +1,15 @@
+<div class="voice-homepage">
+  <div class="row full-row voice-header">
+    <div class="col-lg-12">
+      <h3>{{speaker.primary_name}}</h3>
+    </div>
+  </div>
+  <div class="row full-row voice-info">
+    <div class="col-lg-6">
+      <img class="voice-image" src="{{speaker.image.src}}" alt="{{speaker.image.alt}}">
+    </div>
+    <div class="col-lg-6">
+      {{speaker.description |  safe}}
+    </div>
+  </div>
+</div>
