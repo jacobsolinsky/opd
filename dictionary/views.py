@@ -9,12 +9,6 @@ import re
 import json
 
 
-def tjson(request, entry):
-    m_e = MainEntry.objects.filter(pk="/main-entry/" + entry)
-    return HttpResponse(serializers.serialize('json', m_e),
-                        content_type = "application/json")
-
-
 def homepage(request):
     context = {"main": True}
     return render(request, "dictionary/base.html", context)
@@ -103,9 +97,3 @@ def small_link(request, entry):
             "full": m_e.part_of_speech.full},
         "regions": regions
         }), content_type="application/json")
-
-
-def small_link_html(request):
-    with open("/Users/jacobsolinsky/programming/opd/opd"
-              "/templates/dictionary/vue-templates/small-link.html") as f:
-        return HttpResponse(f.read())

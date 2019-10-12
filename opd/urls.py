@@ -33,7 +33,6 @@ urlpatterns = [
     path('understanding-word-stems-word-parts-and-word-families', lambda request: render(request, '/ictionary/understanding-word-stems-word-parts-and-word-families.html')),
     path('news/dictionary', lambda request: render(request, 'dictionary/news/dictionary.html')),
     path('contact', lambda request: render(request, "dictionary/contact.html")),
-    path('small-link-html', views.small_link_html),
     path('json/search', vue_views.search),
     path('', views.homepage)
 ]+ static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
