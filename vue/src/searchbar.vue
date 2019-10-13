@@ -1,16 +1,14 @@
 <template>
-<div id="searchbar">
-  <div v-on:click="submit">
-  {{type + "aa"}}
-</div>
-<form>
+<div id="searchbar" class="col-md-9 col-sm-9 section search-form">
+
+    <h2>Search the dictionary <small><a href="/advanced_search">Advanced Search</a></small></h2>
 
       <div class="row search-form-row">
         <div class="col-md-9">
-          <input type="text" v-model="q"  class="form-control search-input" placeholder="Search">
+          <input type="text" v-model="q"  class="form-control search-input" placeholder="Search" v-on:keyup.enter="submit">
         </div>
         <div class="col-md-3">
-          <input type="submit" name="commit" value="Search"  class="btn-submit">
+          <input type="submit" name="commit" value="Search"  class="btn-submit" v-on:click="submit">
         </div>
       </div>
       <div class="row search-type">
@@ -30,10 +28,10 @@
           <span class="glyphicon glyphicon-question-sign" data-toggle="tooltip" data-placement="bottom" title="" data-original-title="Allows users to search and discover numerous Ojibwe artifacts, photographs and historical documents.">
         </span></div>
       </div>
-</form>
 </div>
 </template>
 <script>
+import { EventBus } from './event-bus.js';
 export default {
   data(){return {
     q:"",
@@ -42,9 +40,9 @@ export default {
   methods: {
     submit: function(){
       var self = this;
-      fetch(`json/search?utf8=%E2%9C%93&q=${self.q}&commit=Search&type=${self.type}`).
+      fetch(`/vue/search?utf8=%E2%9C%93&q=${self.q}&commit=Search&type=${self.type}`).
       then(response => response.json()).
-      then(data => console.log(data))
+      then(data => EventBus.$emit('searchresults', data))
     }
   }
 }

@@ -211,6 +211,7 @@ class MainEntrySerializer(serializers.Serializer):
     stem = serializers.CharField(max_length=200)
     basic_audio = AudioForBasicFormSerializer(many = True)
     additional_audio = AdditionalAudioSerializer(many = True)
+    sentence_examples = SentenceExampleSerializer(many = True)
     inflectionalform_set = InflectionalFormSerializer(many=True)
     imageresource_set = ImageResourceSerializer(many=True)
     videoresource_set = VideoResourceSerializer(many=True)

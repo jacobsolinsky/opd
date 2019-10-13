@@ -10,7 +10,9 @@ import json
 
 
 def homepage(request):
-    context = {"main": True}
+    num_visits = request.session.get('num_visits', 0)
+    request.session['num_visits'] = num_visits + 1
+    context = {"main": True, 'numvisits':num_visits}
     return render(request, "dictionary/base.html", context)
 
 

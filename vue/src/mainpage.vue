@@ -1,7 +1,5 @@
 <template>
-
-
-
+<div>
     <h2>Welcome to the Ojibwe People's Dictionary</h2>
 <p>The Ojibwe People's Dictionary is a searchable, talking Ojibwe-English dictionary that features the voices of Ojibwe speakers. It is also a gateway into the Ojibwe collections at the Minnesota Historical Society. Along with detailed Ojibwe language entries and voices, you will find beautiful cultural items, photographs, and excerpts from relevant historical documents. Whenever possible, we provide examples of documents in the Ojibwe language.</p>
 
@@ -108,7 +106,9 @@ Whatever dialect you learn or however you learn to speak Ojibwe, the creator wil
 </div>
 </div>
 </div>
+</div>
 </template>
 <script>
-export default {}
+export default {
+}
 </script>

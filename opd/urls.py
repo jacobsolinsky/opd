@@ -17,12 +17,11 @@ from django.contrib import admin
 from django.urls import path, include, re_path
 from django.conf import settings
 from django.conf.urls.static import static
-from dictionary import views, vue_views
+from dictionary import views
 from django.shortcuts import render
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('main-entry/<entry>', views.main_entry),
-    path('main-entry2/<entry>', views.tjson),
     path('advanced_search', views.advanced_search_front),
     path('search', views.regular_search),
     path('speaker/<speaker>', views.speaker),
@@ -33,7 +32,7 @@ urlpatterns = [
     path('understanding-word-stems-word-parts-and-word-families', lambda request: render(request, '/ictionary/understanding-word-stems-word-parts-and-word-families.html')),
     path('news/dictionary', lambda request: render(request, 'dictionary/news/dictionary.html')),
     path('contact', lambda request: render(request, "dictionary/contact.html")),
-    path('json/search', vue_views.search),
+    path('vue/', include('vue.urls')),
     path('', views.homepage)
 ]+ static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
 
