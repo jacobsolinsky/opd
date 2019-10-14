@@ -42,6 +42,7 @@ INSTALLED_APPS = [
     'dictionary.apps.DictionaryConfig',
     'django_extensions',
     'ckeditor',
+    'rest_framework',
 ]
 
 MIDDLEWARE = [
@@ -129,3 +130,8 @@ STATIC_URL = '/static/'
 STATICFILES_DIRS = (
     os.path.join(os.path.dirname(__file__), 'static'),
 )
+REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': (
+        'rest_framework.authentication.SessionAuthentication',
+    )
+}

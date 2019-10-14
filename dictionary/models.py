@@ -202,7 +202,6 @@ class MainEntry(models.Model):
     head_lemma = models.CharField(max_length=200, verbose_name = "Lemma", null = True, blank = True)
     part_of_speech = models.ForeignKey("dictionary.PartOfSpeech", on_delete=models.PROTECT, verbose_name = "Part Of Speech", null = True, blank = True)
     notes = RichTextField(default = "", null = True, blank = True)
-    species = RichTextField(default = "", null = True, blank = True)
     gloss = RichTextField(default = "", null = True, blank = True)
     head_speaker = models.ForeignKey("dictionary.Speaker", default="", on_delete=models.PROTECT, verbose_name = "Main Speaker", null = True, blank = True)
     head_audio = models.ForeignKey("dictionary.Audio", default="", on_delete=models.PROTECT, verbose_name = "Main Audio", null = True, blank = True)

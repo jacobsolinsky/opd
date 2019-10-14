@@ -34,12 +34,6 @@
       {% endif %}
     </span>
 
-  {% if entry.species %}
-  <p></p>
-  [
-  {{entry.species | safe}}
-  ]
-  {% endif %}
 
 </div>
 {% if entry.paired_with_inv.all or entry.see_also_inv.all or entry.redirect_inv.all %}

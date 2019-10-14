@@ -10,9 +10,7 @@ import json
 
 
 def homepage(request):
-    num_visits = request.session.get('num_visits', 0)
-    request.session['num_visits'] = num_visits + 1
-    context = {"main": True, 'numvisits':num_visits}
+    context = {"main": True}
     return render(request, "dictionary/base.html", context)
 
 
@@ -99,3 +97,6 @@ def small_link(request, entry):
             "full": m_e.part_of_speech.full},
         "regions": regions
         }), content_type="application/json")
+def seekrit(request):
+    if request.user.is_authenticated: return HttpResponse('The seekrit is yours to behold')
+    else: return HttpResponse('This seekrit is not meant for thine eyes')

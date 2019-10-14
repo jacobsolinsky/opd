@@ -18,7 +18,6 @@
 </p>
 
 <div v-html="entry.gloss" style="display: inline;"></div>
-<div v-html="entry.species" style="display: inline;"></div>
 <div v-if="entry.notes">
 <strong>Note:</strong>
 <br>

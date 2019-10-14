@@ -33,6 +33,7 @@ urlpatterns = [
     path('news/dictionary', lambda request: render(request, 'dictionary/news/dictionary.html')),
     path('contact', lambda request: render(request, "dictionary/contact.html")),
     path('vue/', include('vue.urls')),
+    path('seekrit', views.seekrit),
     path('', views.homepage)
 ]+ static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
 
