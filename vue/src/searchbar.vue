@@ -1,7 +1,7 @@
 <template>
 <div id="searchbar" class="col-md-9 col-sm-9 section search-form">
 
-    <h2>Search the dictionary <small><a href="/advanced_search">Advanced Search</a></small></h2>
+    <h2>Search the dictionary <small><router-link to="/advanced_search">Advanced Search</router-link></small></h2>
 
       <div class="row search-form-row">
         <div class="col-md-9">
@@ -40,7 +40,7 @@ export default {
   methods: {
     submit(){
       var self  = this;
-       window.location.href = `/vue/search?utf8=%E2%9C%93&q=${self.q}&commit=Search&type=${self.type}`;
+       window.location.href = `/search?utf8=%E2%9C%93&q=${self.q}&commit=Search&type=${self.type}`;
     }
   }
 }

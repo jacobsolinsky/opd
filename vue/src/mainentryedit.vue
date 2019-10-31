@@ -14,14 +14,13 @@
       </span>
   </h3>
   <p v-if="entry.region.length>0" class="regions">
-  <span v-for="r in entry.region" class="badge badge-oj" data-toggle="tooltip" data-placement="right" title="" :data-original-title="r.full">{{r.abbrev}}</span>
+  <md-chip v-for="r in entry.region" md-deletable :data-original-title="r.full">{{r.abbrev}}</md-chip>
   </p>
-
-  <div v-html="entry.gloss" style="display: inline;"></div>
-
+  <ckeditor :editor="editor" v-model="entry.gloss"></ckeditor>
   <div v-if="entry.notes">
     <strong>Note:</strong>
     <br>
+    <ckeditor :editor="editor" v-model="entry.notes"></ckeditor>
     <div v-html="entry.notes"></div>
   </div>
 
@@ -214,14 +213,14 @@
       </div>
     </div>
   </div>
-  <router-link :to="`/vue/edit${entry.url}`" >{{"Edit " + entry.head_lemma}}</router-link>
+  <button v-on:click="submit">Submit</button>
   </div>
 </template>
 <script>
 import ClassicEditor from '@ckeditor/ckeditor5-build-classic';
-import CKEditor from '@ckeditor/ckeditor5-vue';
+import axios from 'axios';
+var csrftoken = 1
 export default {
-  components: {ckeditor: CKEditor.component},
   props: ['entry'],
     data() {
       return {
@@ -230,9 +229,22 @@ export default {
     },
     mounted() {
       var self = this
-      fetch(`/vue/json/main-entry/${self.entry}`)
+      fetch(`/json/main-entry/${self.entry}`)
         .then(response => response.json())
         .then(data => {self.entry = data})
+      fetch('/get-csrf-token')
+        .then(response => response.json())
+        .then(function(data) {
+          console.log(data.token)
+          csrftoken = data.token})
+    },
+    methods: {
+      submit(){
+        var self = this// Using JS Cookies library
+        console.log(csrftoken)
+        var headers = {'X-CSRFToken': csrftoken};
+        axios.post(`/json/main-entry${self.entry.url}`,JSON.stringify(self.entry),{headers: headers});
+      }
     }
 }
 </script>

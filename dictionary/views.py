@@ -14,7 +14,7 @@ def homepage(request):
     return render(request, "dictionary/base.html", context)
 
 
-def main_entry(request, entry):
+def main_entry(resquest, entry):
     m_e = MainEntry.objects.get(pk="/main-entry/" + entry)
     conjugation = conj_call(m_e)
     context = {"entry": m_e, "conjugation": conjugation}

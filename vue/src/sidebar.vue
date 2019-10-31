@@ -45,7 +45,6 @@ export default {
       this.wordfamily = wordfamily
     },
     swapRelatedwords(payload){
-      console.log('gothere3')
       this.currentRelatedwords = {related_words: payload.related_words,
       entryurl:payload.entryurl}
       this.relatedwords = relatedwords

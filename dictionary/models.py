@@ -2,8 +2,6 @@ from django.db import models
 from ckeditor.fields import RichTextField
 # Create your models here.
 
-
-
 class Video(models.Model):
     src = models.CharField(primary_key = True, max_length=200)
     thumb = models.ForeignKey("dictionary.Image", on_delete = models.PROTECT)
@@ -193,7 +191,7 @@ class WordFamilyPair(models.Model):
 
 class RelatedWord(models.Model):
     title = models.CharField(max_length = 200, primary_key = True)
-    word = models.ForeignKey("dictionary.MainEntry",  on_delete=models.PROTECT)
+    word = models.ManyToManyField("dictionary.MainEntry")
     def __str__(self):
         return self.title
 
@@ -203,6 +201,8 @@ class MainEntry(models.Model):
     part_of_speech = models.ForeignKey("dictionary.PartOfSpeech", on_delete=models.PROTECT, verbose_name = "Part Of Speech", null = True, blank = True)
     notes = RichTextField(default = "", null = True, blank = True)
     gloss = RichTextField(default = "", null = True, blank = True)
+    related_words = models.ForeignKey("dictionary.RelatedWord", on_delete = models.PROTECT, null = True, blank = True)
+    word_family = models.ForeignKey("dictionary.WordFamily", on_delete = models.PROTECT, null = True, blank = True)
     head_speaker = models.ForeignKey("dictionary.Speaker", default="", on_delete=models.PROTECT, verbose_name = "Main Speaker", null = True, blank = True)
     head_audio = models.ForeignKey("dictionary.Audio", default="", on_delete=models.PROTECT, verbose_name = "Main Audio", null = True, blank = True)
     head_image = models.ForeignKey("dictionary.Image", default="", on_delete=models.PROTECT, verbose_name = "Main Image", null = True, blank = True)
@@ -213,6 +213,9 @@ class MainEntry(models.Model):
     reduplication = models.CharField(max_length=200, default = "", null = True, blank = True)
     region = models.ManyToManyField("dictionary.Region",  blank=True)
     stem = models.CharField(max_length=200, default = "", null = True, blank = True)
+    keyword_group = models.ForeignKey("dictionary.KeywordGroup", null=True, blank=True, on_delete=models.PROTECT)
+    indexed = models.BooleanField()
+    #keyword_group = models.ForeignKey("dictionary.KeywordGroup", on_delete=models.PROTECT, verbose_name="Keyword Group", null=True, blank=True)
     def __str__(self):
         return self.head_lemma + " (" + self.part_of_speech.abbrev + ")"
     class Meta:
@@ -220,12 +223,25 @@ class MainEntry(models.Model):
 
 class WordPart(models.Model):
     url = models.CharField(primary_key = True,max_length=200)
-    title = models.CharField(max_length=200)
-    type = models.CharField(max_length=200, default="")
-    gloss = models.TextField(default = "")
-    subtypes = models.CharField(max_length=200, default="")
-    words_that_use_this_part = models.ManyToManyField("dictionary.MainEntry", blank = True, null = True)
+    title = models.CharField(max_length=200, default="", null=True, blank=True)
+    type = models.CharField(max_length=200, default="", null=True, blank=True)
+    gloss = models.TextField( default="", null=True, blank=True)
+    subtypes = models.CharField(max_length=200, default="", null=True, blank=True)
+    variants = models.CharField(max_length=200, default="", null=True, blank=True)
+    words_that_use_this_part = models.ManyToManyField("dictionary.MainEntry")
     def __str__(self):
         return self.title + " (" + + self.type.text + ")"
     class Meta:
         verbose_name = "Word Part Entry"
+
+
+class KeywordGroup(models.Model):
+    name = models.CharField(max_length=200, default="")
+    keyword = models.ForeignKey("dictionary.Keyword", null=True, blank=True, on_delete=models.PROTECT)
+
+
+class Keyword(models.Model):
+    name = models.CharField(max_length=200, default="", blank=True, null=True)
+    description = RichTextField()
+    distinguisher = models.CharField(max_length=200, default="", blank=True, null=True)
+    pos = models.CharField(max_length=200, default="", blank=True, null=True)

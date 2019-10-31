@@ -5,6 +5,7 @@
 
 
 <h3>
+
   <div class="pull-right index-photo"><img class="collection-image index-photo" alt="{{entry.head_image.alt}}" src="{{entry.head_image.src}}"></div>
   <span class="lemma">{{entry.head_lemma}}</span>
   <span class="badge badge-oj" data-toggle="tooltip" data-placement="right" title="" data-original-title="{{entry.part_of_speech.full}}">{{entry.part_of_speech.abbrev}}</span>
@@ -33,9 +34,6 @@
 {{entry.gloss | safe}}
 
 
-{% if entry.species %}
-{{entry.species | safe}}
-{% endif %}
 
 {% if entry.notes %}
 <strong>Note:</strong>

@@ -32,7 +32,7 @@ export default {
   },
   mounted(){
     var self  = this
-    fetch(`/vue/json/collection/${self.id}`)
+    fetch(`/json/collection/${self.id}`)
     .then(response => response.json())
     .then(data => self.data = data)
   }

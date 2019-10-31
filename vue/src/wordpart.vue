@@ -46,7 +46,7 @@ export default {
   props : ["entry"],
   mounted() {
     var self = this
-    fetch(`/vue/json/word-part/${self.entry}`)
+    fetch(`/json/word-part/${self.entry}`)
       .then(response => response.json())
       .then(data => {self.entry = data})
     }

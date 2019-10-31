@@ -17,7 +17,7 @@ export default {
   props: ['entries'],
   mounted(){
     var self = this;
-    fetch(`/vue/json/search${jsonToQueryString(self.$route.query)}`)
+    fetch(`/json/search${jsonToQueryString(self.$route.query)}`)
       .then(results => results.json())
       .then(data => {self.entries = data})
   }

@@ -173,8 +173,8 @@
       </a>
     </h4>
   </div>
-  <div id="conjugatedForms" class="panel-collapse collapse in" role="tabpanel" aria-labelledby="conjugatedFormsHeader" aria-expanded="true">
-    <div class="panel-body" v-html="entry.conjugation">
+  <div v-if="entry.conjugation" id="conjugatedForms" class="panel-collapse collapse in" role="tabpanel" aria-labelledby="conjugatedFormsHeader" aria-expanded="true">
+    <div class="panel-body"  v-html="entry.conjugation">
     </div>
   </div>
 </div>
@@ -214,7 +214,7 @@
     </div>
   </div>
 </div>
-<router-link :to="`/vue/edit${entry.url}`" >{{"Edit " + entry.head_lemma}}</router-link>
+<router-link :to="`/edit${entry.url}`" >{{"Edit " + entry.head_lemma}}</router-link>
 </div>
 </template>
 <script>
@@ -223,7 +223,7 @@ export default {
   props : ["entry"],
   mounted() {
     var self = this
-    fetch(`/vue/json/main-entry/${self.entry}`)
+    fetch(`/json/main-entry/${self.entry}`)
       .then(response => response.json())
       .then(data => {
         self.entry = data
