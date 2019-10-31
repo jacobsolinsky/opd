@@ -3,7 +3,7 @@
   <div class="english-search-main-entry">
   <span class="main-entry-title">
 
-      <span class="lemma"><a :href="entry.url" v-on:click.stop.prevent="loadMainEntry">{{entry.head_lemma}}</a></span>
+      <span class="lemma"><router-link :to="`/vue${entry.url}`" >{{entry.head_lemma}}</router-link></span>
       <span class="badge badge-oj" data-toggle="tooltip" data-placement="right" title="" :data-original-title="entry.part_of_speech.full">
         {{entry.part_of_speech.abbrev}}
       </span>

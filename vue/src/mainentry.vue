@@ -18,10 +18,11 @@
 </p>
 
 <div v-html="entry.gloss" style="display: inline;"></div>
+
 <div v-if="entry.notes">
-<strong>Note:</strong>
-<br>
-<div v-html="entry.notes"></div>
+  <strong>Note:</strong>
+  <br>
+  <div v-html="entry.notes"></div>
 </div>
 
 <p v-if="entry.inflectionalform_set.length>0" class="inflectional-forms">
@@ -29,7 +30,7 @@
   <strong >
     {{form.form}}
   </strong>
-    <span  v-for="pos in form.poss" data-toggle="tooltip" data-placement="top" title="" :data-original-title="pos.full">{{pos.abbrev +" "}};</span>
+    <span  v-for="pos in form.poss" data-toggle="tooltip" data-placement="top" title="" :data-original-title="pos.full">{{pos.abbrev +" "}}</span>;
   </div>
 <div v-if="entry.stem">
 <i>Stem:</i> {{entry.stem}}
@@ -53,7 +54,7 @@
                   <td><em>
                   <span  v-for="pos in audio_form.poss" data-toggle="tooltip" data-placement="top" title="" :data-original-title="pos.ful">{{pos.abbrev +" "}}</span></em>
                 <td class="text-right">
-                  <div v-for="audio_rec in audio_form.audio_rec.all">
+                  <div v-for="audio_rec in audio_form.audio_rec">
                     <a :href="audio_rec.speaker.href" class="speaker-initials" data-toggle="modal" data-target="#voiceModal" data-remote="false">
                       {{audio_rec.speaker.initials}}
                     </a>
@@ -89,7 +90,7 @@
                   <td><em>
                   <span v-for="pos in audio_form.poss" data-toggle="tooltip" data-placement="top" title="" :data-original-title="pos.ful">{{pos.abbrev +" "}} </span></em>
                 <td class="text-right">
-                  <div v-for="audio_rec in audio_form.audio_rec.all">
+                  <div v-for="audio_rec in audio_form.audio_rec">
                     <a :href="audio_rec.speaker.href" class="speaker-initials" data-toggle="modal" data-target="#voiceModal" data-remote="false">
                       {{audio_rec.speaker.initials}}
                     </a>
@@ -213,10 +214,30 @@
     </div>
   </div>
 </div>
+<router-link :to="`/vue/edit${entry.url}`" >{{"Edit " + entry.head_lemma}}</router-link>
 </div>
 </template>
 <script>
+import { EventBus } from './event-bus.js';
 export default {
-  props : ["entry", "conjugation"]
+  props : ["entry"],
+  mounted() {
+    var self = this
+    fetch(`/vue/json/main-entry/${self.entry}`)
+      .then(response => response.json())
+      .then(data => {
+        self.entry = data
+        if (self.entry.related_words){
+          EventBus.$emit('relatedwords',
+          {'related_words':self.entry.related_words,
+           'entryurl': self.entry.url})
+          }
+        if (self.entry.word_family){
+        EventBus.$emit('wordfamily',
+        {'word_family':self.entry.word_family,
+         'entryurl': self.entry.url})
+        }
+      })
+  }
 }
 </script>

@@ -5,7 +5,21 @@
 </template>
 <script>
 import searchlink from './searchlink.vue'
+function jsonToQueryString(json) {
+    return '?' +
+        Object.keys(json).map(function(key) {
+            return encodeURIComponent(key) + '=' +
+                encodeURIComponent(json[key]);
+        }).join('&');
+}
 export default {
   components: {searchlink},
-  props:['entries']}
+  props: ['entries'],
+  mounted(){
+    var self = this;
+    fetch(`/vue/json/search${jsonToQueryString(self.$route.query)}`)
+      .then(results => results.json())
+      .then(data => {self.entries = data})
+  }
+}
 </script>

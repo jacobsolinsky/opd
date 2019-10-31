@@ -17,13 +17,12 @@
   <span v-for="r in entry.region" class="badge badge-oj" data-toggle="tooltip" data-placement="right" title="" :data-original-title="r.full">{{r.abbrev}}</span>
   </p>
 
+  <div v-html="entry.gloss" style="display: inline;"></div>
 
-  <ckeditor :editor="editor" v-model="entry.gloss"></ckeditor>
-  <div v-html="entry.species" style="display: inline;"></div>
   <div v-if="entry.notes">
-  <strong>Note:</strong>
-  <br>
-  <div v-html="entry.notes"></div>
+    <strong>Note:</strong>
+    <br>
+    <div v-html="entry.notes"></div>
   </div>
 
   <p v-if="entry.inflectionalform_set.length>0" class="inflectional-forms">
@@ -31,7 +30,7 @@
     <strong >
       {{form.form}}
     </strong>
-      <span  v-for="pos in form.poss" data-toggle="tooltip" data-placement="top" title="" :data-original-title="pos.full">{{pos.abbrev +" "}};</span>
+      <span  v-for="pos in form.poss" data-toggle="tooltip" data-placement="top" title="" :data-original-title="pos.full">{{pos.abbrev +" "}}</span>;
     </div>
   <div v-if="entry.stem">
   <i>Stem:</i> {{entry.stem}}
@@ -55,7 +54,7 @@
                     <td><em>
                     <span  v-for="pos in audio_form.poss" data-toggle="tooltip" data-placement="top" title="" :data-original-title="pos.ful">{{pos.abbrev +" "}}</span></em>
                   <td class="text-right">
-                    <div v-for="audio_rec in audio_form.audio_rec.all">
+                    <div v-for="audio_rec in audio_form.audio_rec">
                       <a :href="audio_rec.speaker.href" class="speaker-initials" data-toggle="modal" data-target="#voiceModal" data-remote="false">
                         {{audio_rec.speaker.initials}}
                       </a>
@@ -91,7 +90,7 @@
                     <td><em>
                     <span v-for="pos in audio_form.poss" data-toggle="tooltip" data-placement="top" title="" :data-original-title="pos.ful">{{pos.abbrev +" "}} </span></em>
                   <td class="text-right">
-                    <div v-for="audio_rec in audio_form.audio_rec.all">
+                    <div v-for="audio_rec in audio_form.audio_rec">
                       <a :href="audio_rec.speaker.href" class="speaker-initials" data-toggle="modal" data-target="#voiceModal" data-remote="false">
                         {{audio_rec.speaker.initials}}
                       </a>
@@ -215,8 +214,8 @@
       </div>
     </div>
   </div>
+  <router-link :to="`/vue/edit${entry.url}`" >{{"Edit " + entry.head_lemma}}</router-link>
   </div>
-
 </template>
 <script>
 import ClassicEditor from '@ckeditor/ckeditor5-build-classic';
@@ -228,6 +227,13 @@ export default {
       return {
         editor: ClassicEditor
         }
+    },
+    mounted() {
+      var self = this
+      fetch(`/vue/json/main-entry/${self.entry}`)
+        .then(response => response.json())
+        .then(data => {self.entry = data})
     }
 }
+</script>
 </script>

@@ -33,6 +33,10 @@ def main_entry(request, entry):
 def get_csrf_token(request):
     token = django.middleware.csrf.get_token(request)
     return JsonResponse({'token': token})
+def all_parts_of_speech(request):
+    return HttpResponse(
+    JSONRenderer().render(
+    LittlePartOfSpeechSerializer(PartOfSpeech.objects.all(), many=True).data), content_type="application/json")
 def login(request):
     try: logout(request)
     except: pass
@@ -47,3 +51,25 @@ def login(request):
                 return HttpResponse('yes')
         else:
             return HttpResponse('no')
+def collection(request, id):
+    url = '/collection/' + id
+    z = ImageCollection.objects.filter(pk=url).first()
+    if z:
+        retval = ImageCollectionSerializer(z).data
+        retval['type'] = 'image'
+        return HttpResponse(JSONRenderer().render(retval), content_type="application/json")
+    z = DocumentCollection.objects.filter(pk=url).first()
+    if z:
+        retval = DocumentCollectionSerializer(z).data
+        retval['type'] = 'document'
+        return HttpResponse(JSONRenderer().render(retval), content_type="application/json")
+    z = VideoCollection.objects.filter(pk=url).first()
+    if z:
+        retval = VideoCollectionSerializer(z).data
+        retval['type'] = 'video'
+        return HttpResponse(JSONRenderer().render(retval), content_type="application/json")
+def word_part(request, entry):
+    url = '/word-part/' + entry
+    z = WordPart.objects.get(pk=url)
+    retval = WordPartSerializer(z).data
+    return HttpResponse(JSONRenderer().render(retval), content_type="application/json")

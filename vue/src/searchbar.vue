@@ -31,18 +31,16 @@
 </div>
 </template>
 <script>
-import { EventBus } from './event-bus.js';
 export default {
   data(){return {
-    q:"",
-    type:"ojibwe",
-  }},
+      q:"",
+      type:"ojibwe",
+    }
+  },
   methods: {
-    submit: function(){
-      var self = this;
-      fetch(`/vue/search?utf8=%E2%9C%93&q=${self.q}&commit=Search&type=${self.type}`).
-      then(response => response.json()).
-      then(data => EventBus.$emit('searchresults', data))
+    submit(){
+      var self  = this;
+       window.location.href = `/vue/search?utf8=%E2%9C%93&q=${self.q}&commit=Search&type=${self.type}`;
     }
   }
 }

@@ -1,5 +1,5 @@
 <template>
-  <a  v-on:click="login">Editor Login</a>
+  <router-link  to="/vue/users/sign-in">Editor Login</router-link>
 </template>
 <script>
 import { EventBus } from './event-bus.js';
