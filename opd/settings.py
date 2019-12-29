@@ -41,7 +41,6 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'dictionary.apps.DictionaryConfig',
     'django_extensions',
-    'ckeditor',
     'rest_framework',
 ]
 

@@ -2,232 +2,312 @@ from rest_framework import serializers
 from . import models
 
 
-class ImageSerializer(serializers.Serializer):
-    src = serializers.CharField(max_length=200)
-    alt = serializers.CharField(max_length=200,  required=False)
+class ImageSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = models.Image
+        fields = ("src", "alt")
 
 
-class VideoSerializer(serializers.Serializer):
-    src = serializers.CharField(max_length=200)
-    thumb = ImageSerializer(required=False)
+class VideoSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = models.Video
+        fields = ("src", "thumb")
 
 
-class PartOfSpeechSerializer(serializers.Serializer):
-    abbrev = serializers.CharField(max_length=30)
-    full = serializers.CharField(max_length=200)
-    description = serializers.CharField()
-    section_url = serializers.CharField(max_length=200)
+class PartOfSpeechSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = models.PartOfSpeech
+        fields = ("abbrev", "full", "description", "section_url")
 
 
-class LittlePartOfSpeechSerializer(serializers.Serializer):
-    abbrev = serializers.CharField(max_length=30)
-    full = serializers.CharField(max_length=200)
+class LittlePartOfSpeechSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = models.PartOfSpeech
+        fields = ("abbrev", "full")
 
 
-class SpeakerSerializer(serializers.Serializer):
-    #image = ImageSerializer()
-    #href = serializers.CharField(max_length=200)
-    initials = serializers.CharField(max_length = 30)
-    #primary_name = serializers.CharField(max_length=200)
-    #ojibwe_name = serializers.CharField(max_length=200)
-    #english_name = serializers.CharField(max_length=200)
-    #community = serializers.CharField(max_length=200)
-    #region = serializers.CharField(max_length=200)
-    #description = serializers.CharField()
+class SpeakerSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = models.Speaker
+        fields = ("image", "href", "initials", "primary_name",
+                  "ojibwe_name", "english_name", "community", "region",
+                  "description")
+        depth = 1
 
 
-class NewsSerializer(serializers.Serializer):
-    title = serializers.CharField(max_length=200)
-    date = serializers.CharField(max_length=200)
-    html = serializers.CharField()
+class LittleSpeakerSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = models.Speaker
+        fields = ("href", "initials", "primary_name",
+                  "ojibwe_name", "english_name")
 
 
-class AudioSerializer(serializers.Serializer):
-    regular = serializers.CharField(max_length=200)
-    mobile = serializers.CharField(max_length=200)
+class NewsSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = models.News
+        fields = ("title", "date", "html")
 
 
-class PossSerializer(serializers.Serializer):
-    abbrev = serializers.CharField(max_length=30)
-    full = serializers.CharField(max_length=200)
+class AudioSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = models.Audio
+        fields = ("regular", "mobile")
 
 
-class SentenceExampleAudioRecSerializer(serializers.Serializer):
-    speaker = SpeakerSerializer()
-    audio = AudioSerializer()
+class PossSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = models.Poss
+        fields = ("abbrev", "full")
 
 
-class AudioForBasicFormAudioRecSerializer(serializers.Serializer):
-    speaker = SpeakerSerializer()
-    audio = AudioSerializer()
+class SentenceExampleAudioRecSerializer(serializers.ModelSerializer):
+    speaker = LittleSpeakerSerializer(required=False)
+
+    class Meta:
+        model = models.SentenceExampleAudioRec
+        fields = ("speaker", "audio")
+        depth = 1
 
 
-class AdditionalAudioAudioRecSerializer(serializers.Serializer):
-    speaker = SpeakerSerializer()
-    audio = AudioSerializer()
+class AudioForBasicFormAudioRecSerializer(serializers.ModelSerializer):
+    speaker = LittleSpeakerSerializer(required=False)
+
+    class Meta:
+        model = models.AudioForBasicFormAudioRec
+        fields = ("speaker", "audio")
+        depth = 1
 
 
-class AudioForBasicFormSerializer(serializers.Serializer):
-    ojibwe = serializers.CharField(max_length=200)
-    poss = PossSerializer(many=True)
+class AdditionalAudioAudioRecSerializer(serializers.ModelSerializer):
+    speaker = LittleSpeakerSerializer(required=False)
+
+    class Meta:
+        model = models.AdditionalAudioAudioRec
+        fields = ("speaker", "audio")
+        depth = 1
+
+
+class AudioForBasicFormSerializer(serializers.ModelSerializer):
+    audio_rec = AudioForBasicFormAudioRecSerializer(many=True)
+
+    class Meta:
+        model = models.AudioForBasicForm
+        fields = ("ojibwe", "poss", "audio_rec")
+        depth = 1
+
+
+class AdditionalAudioSerializer(serializers.ModelSerializer):
+    audio_rec = AdditionalAudioAudioRecSerializer(many=True)
+
+    class Meta:
+        model = models.AdditionalAudio
+        fields = ("ojibwe", "poss", "audio_rec")
+        depth = 1
+
+
+class SentenceExampleSerializer(serializers.ModelSerializer):
     audio_rec = SentenceExampleAudioRecSerializer(many=True)
 
-
-class AdditionalAudioSerializer(serializers.Serializer):
-    ojibwe = serializers.CharField(max_length=200)
-    poss = PossSerializer(many=True)
-    audio_rec = SentenceExampleAudioRecSerializer(many=True)
+    class Meta:
+        model = models.SentenceExample
+        fields = ("ojibwe", "english", "audio_rec")
 
 
-class SentenceExampleSerializer(serializers.Serializer):
-    ojibwe = serializers.CharField()
-    english = serializers.CharField()
-    audio_rec = SentenceExampleAudioRecSerializer(many=True)
+class RegionSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = models.Region
+        fields = ("abbrev", "full", "description")
 
 
-class RegionSerializer(serializers.Serializer):
-    abbrev = serializers.CharField(max_length=30)
-    full = serializers.CharField(max_length=200, default="")
-    description = serializers.CharField(default="")
+class InflectionalFormSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = models.InflectionalForm
+        fields = ("form", "poss")
+        depth = 1
 
 
-class InflectionalFormSerializer(serializers.Serializer):
-    form = serializers.CharField(max_length=200)
-    poss = PossSerializer(many=True)
+class ImageCollectionSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = models.ImageCollection
+        fields = ("url", "copyright", "title", "description", "image")
+        depth = 1
 
 
+class DocumentCollectionSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = models.DocumentCollection
+        fields = ("url", "copyright", "title", "description", "body",
+                  "bibliography")
 
-class ImageCollectionSerializer(serializers.Serializer):
+
+class VideoCollectionSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = models.VideoCollection
+        fields = ("url", "copyright", "title", "description", "video")
+        depth = 1
+
+
+class GenericCollectionLinkSerializer(serializers.Serializer):
+    thumb_image = ImageSerializer(required=False)
     url = serializers.CharField(max_length=200)
-    copyright = serializers.CharField(max_length=200)
     title = serializers.CharField(max_length=200)
-    description = serializers.CharField()
-    image = ImageSerializer(required = False)
+    type = serializers.CharField(max_length=20)
 
 
-class DocumentCollectionSerializer(serializers.Serializer):
-    url = serializers.CharField(max_length=200)
-    copyright = serializers.CharField(max_length=200)
-    title = serializers.CharField(max_length=200)
-    description = serializers.CharField()
-    body = serializers.CharField()
-    bibliography = serializers.CharField()
-
-
-
-class VideoCollectionSerializer(serializers.Serializer):
-    url = serializers.CharField(max_length=200)
-    copyright = serializers.CharField(max_length=200)
-    title = serializers.CharField(max_length=200)
-    description = serializers.CharField()
-    video = VideoSerializer()
-
-
-class ImageResourceSerializer(serializers.Serializer):
-    image = ImageSerializer()
+class ImageResourceSerializer(serializers.ModelSerializer):
     righthref = serializers.PrimaryKeyRelatedField(read_only=True)
-    righttext = serializers.CharField(max_length = 200)
+    class Meta:
+        model = models.ImageResource
+        fields = ("image", "righthref", "righttext")
+        depth = 1
 
 
-class DocumentResourceSerializer(serializers.Serializer):
+class DocumentResourceSerializer(serializers.ModelSerializer):
     righthref = serializers.PrimaryKeyRelatedField(read_only=True)
-    righttext = serializers.CharField(max_length = 200)
+    class Meta:
+        model = models.DocumentResource
+        fields = ("righthref", "righttext")
 
 
-class VideoResourceSerializer(serializers.Serializer):
-    image = ImageSerializer()
+class VideoResourceSerializer(serializers.ModelSerializer):
     righthref = serializers.PrimaryKeyRelatedField(read_only=True)
-    righttext = serializers.CharField(max_length = 200)
+    class Meta:
+        model = models.VideoResource
+        fields = ("image", "righthref", "righttext")
+        depth = 1
 
 
-class SmallLinkSerializer(serializers.Serializer):
-    url = serializers.CharField(max_length=200)
-    head_lemma = serializers.CharField(max_length=200)
-    part_of_speech = PartOfSpeechSerializer(required = False)
-    region = RegionSerializer(many = True)
+class TinyLinkSerializer(serializers.ModelSerializer):
+    part_of_speech = serializers.PrimaryKeyRelatedField(read_only=True)
+    class Meta:
+        model = models.MainEntry
+        fields = ('url', 'head_lemma', 'part_of_speech')
 
 
-class MediumLinkSerializer(serializers.Serializer):
-    url = serializers.CharField(max_length=200)
-    head_lemma = serializers.CharField(max_length=200)
-    part_of_speech = PartOfSpeechSerializer(required = False)
-    gloss = serializers.CharField()
-    head_audio = serializers.PrimaryKeyRelatedField(read_only=True)
-    head_image = serializers.PrimaryKeyRelatedField(read_only=True)
-    region = RegionSerializer(many = True)
-    imageresource_set = serializers.PrimaryKeyRelatedField(read_only=True, many = True)
-    videoresource_set = serializers.PrimaryKeyRelatedField(read_only=True, many = True)
-    documentresource_set = serializers.PrimaryKeyRelatedField(read_only=True, many = True)
+class SmallLinkSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = models.MainEntry
+        fields = ('url', 'head_lemma', 'part_of_speech', 'region')
+        depth = 1
 
 
-class MemberSerializer(serializers.Serializer):
-    kind = serializers.CharField(max_length = 200)
+class MediumLinkSerializer(serializers.ModelSerializer):
+    imageresource_set = serializers.PrimaryKeyRelatedField(many=True,
+                                                           read_only=True)
+    documentresource_set = serializers.PrimaryKeyRelatedField(many=True,
+                                                              read_only=True)
+    videoresource_set = serializers.PrimaryKeyRelatedField(many=True,
+                                                           read_only=True)
+
+    class Meta:
+        model = models.MainEntry
+        fields = ('url', 'head_lemma', 'part_of_speech', 'gloss',
+                  'head_audio', 'head_image',
+                  'region', 'imageresource_set', 'videoresource_set',
+                  'documentresource_set')
+        depth = 1
+
+
+class WordFamilyPairSerializer(serializers.ModelSerializer):
     member = MediumLinkSerializer()
 
+    class Meta:
+        model = models.WordFamilyPair
+        fields = ("kind", "member")
+        depth = 1
 
-class WordFamilySerializer(serializers.Serializer):
-    head=MediumLinkSerializer()
-    members = MemberSerializer(many=True)
+
+class WordFamilySerializer(serializers.ModelSerializer):
+    head = MediumLinkSerializer()
+    members = WordFamilyPairSerializer(many=True)
+
+    class Meta:
+        model = models.WordFamily
+        fields = ("head", "members")
+        depth = 1
 
 
-class RelatedWordSerializer(serializers.Serializer):
-    title = serializers.CharField(max_length = 200)
+class RelatedWordSerializer(serializers.ModelSerializer):
     mainentry_set = MediumLinkSerializer(many=True)
 
-class SearchLinkSerializer(serializers.Serializer):
-    url = serializers.CharField(max_length=200)
-    head_lemma = serializers.CharField(max_length=200)
-    part_of_speech = PartOfSpeechSerializer(required = False)
-    gloss = serializers.CharField()
-    head_audio = serializers.PrimaryKeyRelatedField(read_only=True)
-    head_image = serializers.PrimaryKeyRelatedField(read_only=True)
-    paired_with_inv = SmallLinkSerializer(many = True)
-    see_also_inv = SmallLinkSerializer(many = True)
-    redirect_inv = SmallLinkSerializer(many = True)
-    region = RegionSerializer(many = True)
-    imageresource_set = serializers.PrimaryKeyRelatedField(read_only=True, many = True)
-    videoresource_set = serializers.PrimaryKeyRelatedField(read_only=True, many = True)
-    documentresource_set = serializers.PrimaryKeyRelatedField(read_only=True, many = True)
+    class Meta:
+        model = models.RelatedWord
+        fields = ("title", "mainentry_set")
 
 
-class MainEntrySerializer(serializers.Serializer):
-    url = serializers.CharField(max_length=200)
-    head_lemma = serializers.CharField(max_length=200)
-    part_of_speech = PartOfSpeechSerializer(required = False)
-    notes = serializers.CharField()
-    gloss = serializers.CharField()
-    head_speaker = SpeakerSerializer(required=False)
-    head_audio = AudioSerializer(required=False)
-    head_image = ImageSerializer(required=False)
-    paired_with_inv = SmallLinkSerializer(many = True)
-    see_also_inv = SmallLinkSerializer(many = True)
-    redirect_inv = SmallLinkSerializer(many = True)
-    word_family = WordFamilySerializer()
-    related_words = RelatedWordSerializer()
-    word_parts = serializers.CharField()
-    reduplication = serializers.CharField(max_length=200)
-    region = RegionSerializer(many = True)
-    stem = serializers.CharField(max_length=200)
-    basic_audio = AudioForBasicFormSerializer(many = True)
-    additional_audio = AdditionalAudioSerializer(many = True)
-    sentence_examples = SentenceExampleSerializer(many = True)
+class SearchLinkSerializer(serializers.ModelSerializer):
+    paired_with_inv = SmallLinkSerializer(many=True)
+    see_also_inv = SmallLinkSerializer(many=True)
+    redirect_inv = SmallLinkSerializer(many=True)
+    imageresource_set = serializers.PrimaryKeyRelatedField(many=True,
+                                                           read_only=True)
+    documentresource_set = serializers.PrimaryKeyRelatedField(many=True,
+                                                              read_only=True)
+    videoresource_set = serializers.PrimaryKeyRelatedField(many=True,
+                                                           read_only=True)
+
+    class Meta:
+        model = models.MainEntry
+        fields = ('url', 'head_lemma', 'part_of_speech', 'gloss',
+                  'head_audio', 'head_image', 'word_family',
+                  'paired_with_inv', 'see_also_inv', 'redirect_inv',
+                  'region', 'imageresource_set', 'videoresource_set',
+                  'documentresource_set')
+        depth = 1
+
+
+class MainEntrySerializer(serializers.ModelSerializer):
+    head_speaker = LittleSpeakerSerializer(required=False)
+    part_of_speech = LittlePartOfSpeechSerializer(required=False)
+    paired_with_inv = SmallLinkSerializer(many=True)
+    redirect_inv = SmallLinkSerializer(many=True)
+    word_family = WordFamilySerializer(required=False)
+    related_words = RelatedWordSerializer(required=False)
+    region = RegionSerializer(many=True)
+    basic_audio = AudioForBasicFormSerializer(many=True)
+    additional_audio = AdditionalAudioSerializer(many=True)
+    sentence_examples = SentenceExampleSerializer(many=True)
     inflectionalform_set = InflectionalFormSerializer(many=True)
     imageresource_set = ImageResourceSerializer(many=True)
     videoresource_set = VideoResourceSerializer(many=True)
     documentresource_set = DocumentResourceSerializer(many=True)
-    #class Meta:
-        #model = models.MainEntry
-        #fields = ('url', 'head_lemma', 'part_of_speech', 'notes', 'gloss',
-        #'head_speaker', 'head_audio', 'head_image', 'paired_with_inv',
-        #'see_also_inv', 'redirect_inv', 'word_family', 'related_words',
-        #'word_parts', 'reduplication', 'region', 'stem', 'basic_audio',
-        #'additional_audio', 'sentence_examples', 'inflectionalform_set',
-        #'imageresource_set', 'videoresource_set', 'documentresource_set')
 
-class WordPartSerializer(serializers.Serializer):
-    url = serializers.CharField(max_length=200)
-    title = serializers.CharField(max_length=200)
-    type = serializers.CharField(max_length=200, default="")
-    gloss = serializers.CharField(default = "")
-    subtypes = serializers.CharField(max_length=200, default="")
-    words_that_use_this_part = MediumLinkSerializer(many = True)
+    class Meta:
+        model = models.MainEntry
+        fields = ('url', 'head_lemma', 'part_of_speech', 'notes', 'gloss',
+                  'head_speaker', 'head_audio', 'head_image',
+                  'paired_with_inv', 'redirect_inv',
+                  'word_family', 'related_words', 'word_parts',
+                  'reduplication', 'region', 'stem', 'basic_audio',
+                  'additional_audio', 'sentence_examples',
+                  'inflectionalform_set', 'imageresource_set',
+                  'videoresource_set', 'documentresource_set')
+        depth = 1
+
+
+class WordPartSerializer(serializers.ModelSerializer):
+    words_that_use_this_part = MediumLinkSerializer(many=True)
+
+    class Meta:
+        model = models.WordPart
+        fields = ('url', 'title', 'type', 'gloss', 'subtypes',
+                  'words_that_use_this_part')
+
+
+class KeywordGroupSerializer(serializers.ModelSerializer):
+    mainentry_set = MediumLinkSerializer(many=True)
+    keyword = None
+
+    class Meta:
+        model = models.KeywordGroup
+        fields = ("name", "mainentry_set")
+
+
+class KeywordSerializer(serializers.ModelSerializer):
+    keywordgroup_set = KeywordGroupSerializer(many=True)
+
+    class Meta:
+        model = models.Keyword
+        fields = ("name", "description", "distinguisher", "pos",
+                  "keywordgroup_set")
+        depth = 1

@@ -1,39 +1,42 @@
 import Vue from 'vue'
 import VueRouter from 'vue-router'
-import Vuex from 'vuex'
-import VueMaterial from 'vue-material'
-import 'vue-material/dist/vue-material.min.css'
-import 'vue-material/dist/theme/default.css'
-import searchbar from './searchbar.vue'
-import advancedsearch from './advancedsearch.vue'
-import content from './content.vue'
-import sidebar from './sidebar.vue'
-import carousel from './carousel.vue'
-import loginlink from './login-link.vue'
-import mainpage from './mainpage.vue'
-import searchresults from './searchresults.vue'
-import mainentry from './mainentry.vue'
-import mainentryedit from './mainentryedit.vue'
-import login from './login.vue'
-import collection from './collection.vue'
-import wordpart from './wordpart.vue'
+import store from './store.js'
+import searchbar from './Views/searchbar.vue'
+import advancedsearch from './Views/advancedsearch.vue'
+import content from './Views/content.vue'
+import sidebar from './Views/sidebar.vue'
+import carousel from './Views/carousel.vue'
+import loginlink from './Views/login-link.vue'
+import mainpage from './Views/mainpage.vue'
+import searchresults from './Views/searchresults.vue'
+import englishsearchresults from './Views/englishsearchresults.vue'
+import mainentry from './Views/mainentry.vue'
+import mainentryedit from './EditViews/mainentryedit.vue'
+import login from './Views/login.vue'
+import collection from './Views/collection.vue'
+import wordpart from './Views/wordpart.vue'
 import CKEditor from '@ckeditor/ckeditor5-vue'
 Vue.use(VueRouter)
-Vue.use(Vuex)
-Vue.use(VueMaterial)
 Vue.use(CKEditor)
-const store = new Vuex.Store({
-  loggedin : false
-})
 const routes = [
   {path:'/', component: mainpage},
   {path:'/users/sign-in', component: login},
-  {path:'/main-entry/:entry', component: mainentry, props:true},
-  {path:'/edit/main-entry/:entry', component: mainentryedit, props:true},
-  {path:'/search', component: searchresults, props:true},
+  {path:'/main-entry/:entryurl', component: mainentry, props:true},
+  {path:'/search', component: searchresults},
   {path:'/collection/:id', component: collection, props:true},
   {path:'/word-part/:entry', component: wordpart, props:true},
-  {path:'/advanced_search', component:advancedsearch, props:true}
+  {path:'/advanced_search', component:advancedsearch, props:true},
+  {path:'/edit/main-entry/:entryurl', component: mainentryedit, props:true, beforeEnter(to, from, next){
+    if (!store.state.loggedIn){
+      store.commit('setBehindLogin', to.path)
+      next('/users/sign-in')
+    }
+    else{
+      next()
+    }
+    }
+  }
+
 ]
 var router = new VueRouter({
   routes,
@@ -42,7 +45,8 @@ var router = new VueRouter({
 new Vue({
   el: '#content',
   router,
-  components: {login, mainpage, mainentry, searchresults, collection, wordpart, advancedsearch},
+  store,
+  components: {login, mainpage, mainentry, searchresults, englishsearchresults, collection, wordpart, advancedsearch},
   render: h => h(content)
 })
 new Vue({
@@ -53,6 +57,7 @@ new Vue({
 new Vue({
   el: '#sidebar',
   router,
+  store,
   render: h => h(sidebar),
 });
 new Vue({

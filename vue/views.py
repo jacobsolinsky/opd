@@ -1,4 +1,4 @@
-from django.shortcuts import render, render_to_response
+from django.shortcuts import render
 from django.http import HttpResponse, JsonResponse
 from conjugator.htmlmaker import conj_call
 from conjugator.morphemes import ojibwe_lev, todoublevowel
@@ -10,8 +10,7 @@ from dictionary.serializers import *
 import django.middleware.csrf
 import re
 import json
-
-
+from itertools import chain
 
 
 def homepage(request):
@@ -19,11 +18,9 @@ def homepage(request):
 
 
 def get_lookup_field(type, scope, field):
-    retval = ""
+    retval = "head_lemma"
     if type == "ojibwe":
-        return "head_lemma"
-    if field == "lemma":
-        retval = "head_lemma"
+        return retval
     elif field == "stem":
         retval = "stem"
     if scope == "exact":
@@ -34,69 +31,111 @@ def get_lookup_field(type, scope, field):
         return retval + "__iendswith"
     elif scope == "contains":
         return retval + "__icontains"
+    else:
+        return retval
+
 
 def regular_search(request):
     query = request.GET.get('q')
     type = request.GET.get('type')
-    query, type, scope, field = map(request.GET.get, ['q', 'type', 'scope', 'field'])
-    entries = None
+    query, type, scope, field, page = map(request.GET.get,
+                                    ['q', 'type', 'scope', 'field', 'page'])
+    if not page: page = 0
+    page = int(page)
     if type in ['ojibwe', 'main_entry']:
-        lf = get_lookup_field(type, scope, field)
-        entries = MainEntry.objects.filter(**{lf:query})
+        if scope == "inexact":
+            all = MainEntry.objects.filter()
+            dvquery = todoublevowel(query)
+            all = [a for a in all if a.head_lemma]
+            entries = [a for a in all
+                       if ojibwe_lev(todoublevowel(a.head_lemma),
+                                     dvquery) < 10]
+        else:
+            lf = get_lookup_field(type, scope, field)
+            entries = MainEntry.objects.filter(**{lf: query})
+        return HttpResponse(
+                            JSONRenderer().render(
+                                SearchLinkSerializer(entries[page*50:(page+1)*50], many=True).data),
+                            content_type="application/json")
     elif type == "english":
-        all = MainEntry.objects.all()
-        entries = [a for a in all if
-            re.search(rf"\b{re.escape(query)}\b", a.gloss)]
-    return HttpResponse(JSONRenderer().render(SearchLinkSerializer(entries, many=True).data), content_type="application/json")
+        all = Keyword.objects.all()
+        entries = set([a for a in all if
+                      re.search(rf"\b{re.escape(query)}\b", a.name)])
+        return HttpResponse(
+                            JSONRenderer().render(
+                                KeywordSerializer(entries[page*10:(page+1)*10], many=True).data),
+                            content_type="application/json")
+    elif type == "collections":
+        iall = ImageCollection.objects.all()
+        vall = VideoCollection.objects.all()
+        dall = DocumentCollection.objects.all()
+        all = chain(iall, vall, dall)
+        retval = [a for a in all if query in str(a.title) or query in str(a.description)]
+        return HttpResponse(
+                            JSONRenderer().render(
+                                GenericCollectionLinkSerializer(
+                                    retval[page*50:(page+1)*50],
+                                    many=True).data),
+                                content_type="application/json")
 
 
 def main_entry(request, entry):
     m_e = MainEntry.objects.get(pk="/main-entry/" + entry)
     conjugation = None
-    if m_e.stem and m_e.part_of_speech and \
-    m_e.part_of_speech.abbrev in ['vai', 'vti', 'vti2', 'vta', 'vii']:
-        conjugation = conj_call(m_e)
+    if (m_e.stem and m_e.part_of_speech and
+    m_e.part_of_speech.abbrev in ['vai', 'vti', 'vti2', 'vta', 'vii']):
+            conjugation = conj_call(m_e)
     m_e = MainEntrySerializer(m_e).data
     m_e['conjugation'] = conjugation
-    return HttpResponse(JSONRenderer().render(m_e), content_type="application/json")
+    return HttpResponse(JSONRenderer().render(m_e),
+                        content_type="application/json")
+
+
 def get_csrf_token(request):
     token = django.middleware.csrf.get_token(request)
     return JsonResponse({'token': token})
-def all_parts_of_speech(request):
-    return HttpResponse(
-    JSONRenderer().render(
-    LittlePartOfSpeechSerializer(PartOfSpeech.objects.all(), many=True).data), content_type="application/json")
+
+
+
+
+
 def login(request):
     try: logout(request)
     except: pass
-    if request.method == "PUT":
+    if request.method == "POST":
         body = json.loads(request.body.decode('utf-8'))
         username = body.get('username')
         password = body.get('password')
         user = authenticate(request, username=username, password=password)
-        authlogin(request, user)
         if user is not None:
+            authlogin(request, user)
             if user.is_active:
-                return HttpResponse('yes')
-        else:
-            return HttpResponse('no')
+                return HttpResponse('{"value":"yes"}',content_type="application/json")
+    return HttpResponse('{"value":"no"}', content_type="application/json")
+
+
 def collection(request, id):
     url = '/collection/' + id
     z = ImageCollection.objects.filter(pk=url).first()
     if z:
         retval = ImageCollectionSerializer(z).data
-        retval['type'] = 'image'
-        return HttpResponse(JSONRenderer().render(retval), content_type="application/json")
+        return HttpResponse(
+            JSONRenderer().render(retval),
+            content_type="application/json")
     z = DocumentCollection.objects.filter(pk=url).first()
     if z:
         retval = DocumentCollectionSerializer(z).data
-        retval['type'] = 'document'
-        return HttpResponse(JSONRenderer().render(retval), content_type="application/json")
+        return HttpResponse(
+            JSONRenderer().render(retval),
+            content_type="application/json")
     z = VideoCollection.objects.filter(pk=url).first()
     if z:
         retval = VideoCollectionSerializer(z).data
-        retval['type'] = 'video'
-        return HttpResponse(JSONRenderer().render(retval), content_type="application/json")
+        return HttpResponse(
+            JSONRenderer().render(retval),
+            content_type="application/json")
+
+
 def word_part(request, entry):
     url = '/word-part/' + entry
     z = WordPart.objects.get(pk=url)

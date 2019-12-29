@@ -1,10 +1,11 @@
-from django.shortcuts import render, render_to_response
+from django.shortcuts import render
 from .models import MainEntry, Speaker, PartOfSpeech
 from django.http import HttpResponse, JsonResponse
 from django.template import Context
 from conjugator.htmlmaker import conj_call
 from conjugator.morphemes import ojibwe_lev, todoublevowel
 from django.core import serializers
+
 import re
 import json
 
@@ -47,7 +48,8 @@ def advanced_search_front(request):
                   "exact": "exact match"}.get(scope)
     if type == "main_entry":
         part_of_speech = request.GET.get('partofspeech')
-        if not part_of_speech: part_of_speech = ANY
+        if not part_of_speech:
+            part_of_speech = ANY
         all = MainEntry.objects.all()
         all = [a for a in all if a.head_lemma and a.part_of_speech is not None]
         all = [a for a in all if a.part_of_speech.abbrev == part_of_speech]
@@ -90,13 +92,17 @@ def small_link(request, entry):
     m_e = MainEntry.objects.get(pk="/main-entry/" + entry)
     regions = [{"abbrev": region.abbrev,
                 "full": region.full} for region in m_e.region.all()]
-    return HttpResponse(json.dumps({"url": m_e.url,
+    return HttpResponse(json.dumps({
+        "url": m_e.url,
         "head_lemma": m_e.head_lemma,
         "part_of_speech": {
             "abbrev": m_e.part_of_speech.abbrev,
             "full": m_e.part_of_speech.full},
         "regions": regions
         }), content_type="application/json")
+
+
 def seekrit(request):
-    if request.user.is_authenticated: return HttpResponse('The seekrit is yours to behold')
+    if request.user.is_authenticated:
+        return HttpResponse('The seekrit is yours to behold')
     else: return HttpResponse('This seekrit is not meant for thine eyes')
