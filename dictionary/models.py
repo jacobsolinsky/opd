@@ -189,6 +189,8 @@ class ImageCollection(models.Model):
     description = models.TextField(null=True, blank=True)
     image = models.ForeignKey("dictionary.Image", related_name="mainimage",
                               on_delete=models.PROTECT, null=True, blank=True)
+    thumb = models.ForeignKey("dictionary.Image", on_delete=models.PROTECT,
+        null=True, blank=True)
 
     def __str__(self):
         return self.title
@@ -229,6 +231,8 @@ class VideoCollection(models.Model):
                                 null=True, blank=True)
     video = models.ForeignKey("dictionary.Video", on_delete=models.PROTECT,
                               verbose_name="Video", null=True, blank=True)
+    thumb = models.ForeignKey("dictionary.Image", on_delete=models.PROTECT,
+        null=True, blank=True)
 
     def __str__(self):
         return self.title
@@ -312,6 +316,8 @@ class RelatedWord(models.Model):
 
 class MainEntry(models.Model):
     url = models.CharField(primary_key=True, max_length=200)
+    old_url = models.CharField(max_length=200)
+    history_set = models.ForeignKey("dictionary.HistorySet", on_delete=models.PROTECT)
     head_lemma = models.CharField(max_length=200, verbose_name="Lemma",
                                   null=True, blank=True)
     part_of_speech = models.ForeignKey(
@@ -356,7 +362,7 @@ class MainEntry(models.Model):
         verbose_name="Keyword Group", null=True, blank=True)
 
     def __str__(self):
-        return self.head_lemma + " (" + self.part_of_speech.abbrev + ")"
+        return f"{self.head_lemma} ({self.part_of_speech.abbrev })"
 
     class Meta:
         verbose_name = "Main Entry"
@@ -364,6 +370,7 @@ class MainEntry(models.Model):
 
 class WordPart(models.Model):
     url = models.CharField(primary_key=True, max_length=200)
+    old_url = models.CharField(max_length=200)
     title = models.CharField(max_length=200, default="", null=True, blank=True)
     type = models.CharField(max_length=200, default="", null=True, blank=True)
     gloss = models.TextField(default="", null=True, blank=True)
@@ -392,3 +399,14 @@ class Keyword(models.Model):
     distinguisher = models.CharField(max_length=200, default="", blank=True,
                                      null=True)
     pos = models.CharField(max_length=200, default="", blank=True, null=True)
+
+
+class HistorySet(models.Model):
+    id = models.IntegerField(primary_key=True)
+
+
+class History(models.Model):
+    HistorySet = models.ForeignKey("dictionary.HistorySet", null=True, blank=True,
+                                on_delete=models.PROTECT)
+    historic_entry = models.CharField(primary_key=True, max_length=200)
+    creation_datetime = models.DateTimeField()

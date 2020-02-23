@@ -6,6 +6,7 @@ from django.core import serializers
 from dictionary.models import *
 from rest_framework.renderers import JSONRenderer
 from django.contrib.auth import authenticate, login as authlogin, logout
+from django.contrib.auth.decorators import login_required
 from dictionary.serializers import *
 import django.middleware.csrf
 import re
@@ -114,6 +115,13 @@ def login(request):
     return HttpResponse('{"value":"no"}', content_type="application/json")
 
 
+def logout_(request):
+    if request.method == "POST":
+        logout(request)
+        return HttpResponse("yes")
+    return HttpResponse("no")
+
+
 def collection(request, id):
     url = '/collection/' + id
     z = ImageCollection.objects.filter(pk=url).first()
@@ -141,3 +149,32 @@ def word_part(request, entry):
     z = WordPart.objects.get(pk=url)
     retval = WordPartSerializer(z).data
     return HttpResponse(JSONRenderer().render(retval), content_type="application/json")
+
+
+def am_i_authenticated(request):
+    if request.user.is_authenticated:
+        return HttpResponse('{"value":"yes"}',content_type="application/json")
+    else:
+        return HttpResponse('{"value":"no"}',content_type="application/json")
+
+
+@login_required
+def history(request):
+    e = ""
+    if request.method == "POST":
+        try:
+            entry = MainEntry.objects.get(e.data['historic'])
+            history = entry.historic
+            old_head = historic.head
+            old_head.url = old_head.old_url
+            old_head.save()
+            entry.url = entry.old_url
+            entry.indexed = True
+            entry.save()
+            history.historic = entry.url
+            history.head = entry
+            history.save()
+
+            return HttpResponse("yes")
+        except Exception as e: print(e)
+    return HttpResponse(repr(e))

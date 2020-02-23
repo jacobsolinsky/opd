@@ -2,7 +2,8 @@
   <div>
     <span class="badge badge-oj">
     <multiselect v-if="showOptions" v-model="partofspeech"
-     :options="options" track-by="abbrev" label="abbrev"
+    @input="updatePartofspeech"
+     :options="options"
      :custom-label="abbrevFull" :optionsLimit="8"></multiselect>
      </span>
   </div>
@@ -31,6 +32,9 @@ export default {
   methods:{
     abbrevFull({abbrev, full}){
       return `${abbrev} : ${full}`
+    },
+    updatePartofspeech(){
+      this.$emit('updatePartofspeech', this.partofspeech)
     }
   }
 }

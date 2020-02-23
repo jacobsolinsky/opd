@@ -112,15 +112,19 @@ class Verb:
                 if self.subj == p21:
                     self.morphemelist.append(Si())
                     self.morphemelist.append(Wnegative())
+                    ke = False
                 else:
                     self.morphemelist.append(Ke())
+                    ke = True
             if self.mode in ['neutral', 'prohibitative']:
-                if self.subj == p2:
+                if self.subj == p2 and self.mode == 'neutral':
                     self.morphemelist.append(Nimperative())
                 elif self.subj == p2p:
                     self.morphemelist.append(Og())
                 elif self.subj == p21:
                     self.morphemelist.append(Daa())
+            if self.mode == 'prohibitative' and ke:
+                self.morphemelist.append(En())
             return
         else:
             if not self.polarity:
@@ -404,6 +408,30 @@ class Verb:
                 self.morphemelist.append(Ag_())
             if self.obj == p3op:
                 self.morphemelist.append(Ah_())
+        if self.imperative:
+            if self.mode == 'delayed':
+                self.morphemelist.append(Wdelayed())
+                self.morphemelist.append(Kdelayed())
+                self.morphemelist.append(CONJUNCTCENTRALI(self.subj))
+                return
+            if self.mode == 'prohibitative':
+                if self.subj == p21:
+                    self.morphemelist.append(Si())
+                    self.morphemelist.append(Wnegative())
+                    ke = False
+                else:
+                    self.morphemelist.append(Ke())
+                    ke = True
+            if self.mode in ['neutral', 'prohibitative']:
+                if self.subj == p2 and self.mode == 'neutral':
+                    self.morphemelist.append(Nimperative())
+                elif self.subj == p2p:
+                    self.morphemelist.append(Og())
+                elif self.subj == p21:
+                    self.morphemelist.append(Daa())
+            if self.mode == 'prohibitative' and ke:
+                self.morphemelist.append(En())
+            return
 
     def assemble(self):
         if self.focus == p3p:

@@ -58,6 +58,9 @@ mutations: {
   login(state){
     state.loggedIn = true
   },
+  logout(state){
+    state.loggedIn = false
+  },
   setBehindLogin(state, value){
     state.behindLogin = value
   }

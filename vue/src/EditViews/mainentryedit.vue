@@ -4,7 +4,7 @@
   <router-link  to="/edit/main-entry/new">Create new entry</router-link>
   <h3>
     <div class="pull-right index-photo"><img v-if="entry.head_image" class="collection-image index-photo" :alt="entry.head_image.alt" :src="entry.head_image.src"></div>
-    <input type="text" class="lemma" :value="entry.head_lemma">
+    <input type="text" class="lemma" v-model="entry.head_lemma">
 
     <partofspeechwidget :partofspeech="entry.part_of_speech" @updatePartofspeech="updatePartofspeech"></partofspeechwidget>
 
@@ -118,6 +118,7 @@
   </div>
 
   <button v-on:click="submit">Submit</button>
+  <historywidget :historyset="entry.history_set"></historywidget>
   </div>
 </template>
 <script>
@@ -134,12 +135,14 @@ import imageresourcesetwidget from '../EditorWidgets/imageresourcesetwidget.vue'
 import videoresourcesetwidget from '../EditorWidgets/videoresourcesetwidget.vue'
 import documentresourcesetwidget from '../EditorWidgets/documentresourcesetwidget.vue'
 import allentrieswidget from '../EditorWidgets/allentrieswidget.vue'
+import historywidget from '../EditorWidgets/historywidget.vue'
 
 var csrftoken = 1
 export default {
   components: {partofspeechwidget, inflectionalformwidget, speakerwidget,
   audioformswidget, audiorec, sentenceexampleswidget, imageresourcesetwidget,
-  videoresourcesetwidget, documentresourcesetwidget, allentrieswidget},
+  videoresourcesetwidget, documentresourcesetwidget, allentrieswidget,
+  historywidget},
   data(){
     return {
       entry:{url:"url", head_lemma:"lemma"},
@@ -165,6 +168,12 @@ export default {
       documentresource_set: this.entry.hasOwnProperty('documentresource_set')
       }
     }
+  },
+  created(){
+    var self = this
+    fetch('/get-csrf-token').
+                then(response => response.json()).
+                then(function(data) { self.csrftoken = data.token})
   },
   beforeRouteEnter(to, from, next) {
     var entryurl = to.params.entryurl
@@ -219,24 +228,20 @@ export default {
     methods: {
       submit(){
         const submitval =  (({
-          notes, gloss, audiorec, head_image, word_parts, reduplication, stem,
+          head_lemma, part_of_speech, notes, gloss, audiorec, head_image, word_parts, reduplication, stem,
           inflectionalform_set, region, basic_audio, additional_audio,
           sentence_examples, imageresource_set, videoresource_set,documentresource_set
         }) => ({
-          notes, gloss, audiorec, head_image, word_parts, reduplication, stem,
+          head_lemma, part_of_speech, notes, gloss, audiorec, head_image, word_parts, reduplication, stem,
           inflectionalform_set, region, basic_audio, additional_audio,
           sentence_examples, imageresource_set, videoresource_set,documentresource_set
         }))(this.entry)
-        console.log('here')
-        console.log(JSON.stringify(submitval))
-        var self = this// Using JS Cookies library
-        console.log(csrftoken)
-        var headers = {'X-CSRFToken': csrftoken};
-        axios.post(`/json/main-entry${self.entry.url}`,JSON.stringify(submitval),{headers: headers});
+        var self = this
+        var headers = {'X-CSRFToken': this.csrftoken};
+        axios.post(`/api/main-entry`,submitval,{headers: headers})
       },
-      updatePartofspeech(value){
-        this.entry.part_of_speech.abbrev=value.abbrev
-        this.entry.part_of_speech.full=value.full
+      updatePartofspeech(e){
+        this.entry.part_of_speech=e
       },
       updateBasicaudio(e){
         this.entry.basic_audio=e

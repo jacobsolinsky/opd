@@ -28,8 +28,20 @@ const routes = [
   {path:'/advanced_search', component:advancedsearch, props:true},
   {path:'/edit/main-entry/:entryurl', component: mainentryedit, props:true, beforeEnter(to, from, next){
     if (!store.state.loggedIn){
-      store.commit('setBehindLogin', to.path)
-      next('/users/sign-in')
+      fetch('/am-i-authenticated').
+      then(response => response.json()).
+      then( data => {
+            if (data.value === "no") {
+              store.commit('setBehindLogin', to.path)
+              next('/users/sign-in')
+            }
+            else if (data.value === "yes"){
+              store.commit('login')
+              next()
+            }
+          }
+        )
+
     }
     else{
       next()
@@ -67,5 +79,6 @@ new Vue({
 new Vue({
   el: '#loginlink',
   router,
+  store,
   render: h => h(loginlink),
 });

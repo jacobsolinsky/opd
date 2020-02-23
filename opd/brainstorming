@@ -1,0 +1,13 @@
+#replace entry's word family pair instances
+#replace entry's word family head instances
+#replace entry's related words
+#replace entry's keyword groups
+#update head_speaker
+#create new head_audio
+#create new inflectional forms
+#create new basic audio
+#create new additional audio
+#create new sentence examples
+new_basic_audio_id = AudioForBasicForm.objects.all().aggregate(Max('audio_for_basic_forms_index'))['audio_for_basic_forms_index__max']+1
+new_additional_audio_id = AdditionalAudio.objects.all().aggregate(Max('additional_audio_index'))['additional_audio_index__max']+1
+new_sentence_example_id = SentenceExample.objects.all().aggregate(Max('sentence_example_index'))['sentence_example_index__max']+1  

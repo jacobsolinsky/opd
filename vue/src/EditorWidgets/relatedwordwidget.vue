@@ -19,12 +19,13 @@
       :key="key" @entryDelete="entryDelete"></allentrieswidget>
     </div>
     <button v-on:click.stop.prevent="add">Add entry to related words</button>
-
+    <button v-on:click.stop.prevent="post">Post</button>
 
   </div>
 </template>
 <script>
 import allentrieswidget from './allentrieswidget.vue'
+import axios from 'axios'
 import{Multiselect} from 'vue-multiselect'
 
 export default{
@@ -73,6 +74,17 @@ export default{
       },
       title(t){
         return t.title
+      },
+      post(t){
+        var self = this
+        fetch('/get-csrf-token').
+                    then(response => response.json()).
+                    then(function(data) {
+                      var csrftoken = data.token
+                      var headers = {'X-CSRFToken': csrftoken};
+                      axios.post(`/relatedwords`,self.relatedwords,
+                        {headers: headers})
+                    })
       }
   }
 }

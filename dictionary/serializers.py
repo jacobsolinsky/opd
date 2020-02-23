@@ -1,34 +1,51 @@
 from rest_framework import serializers
-from . import models
+from .models import *
+import re
+from django.http import HttpResponse
+import time
+import datetime
+
+
+class HistorySerializer(serializers.ModelSerializer):
+    class Meta:
+        model = History
+        fields = ("historic_entry", "creation_datetime")
+
+
+class HistorySetSerializer(serializers.ModelSerializer):
+    history_set = HistorySerializer(many=True, read_only=True)
+    class Meta:
+        model = HistorySet
+        fields = ("history_set", "id")
 
 
 class ImageSerializer(serializers.ModelSerializer):
     class Meta:
-        model = models.Image
+        model = Image
         fields = ("src", "alt")
 
 
 class VideoSerializer(serializers.ModelSerializer):
     class Meta:
-        model = models.Video
+        model = Video
         fields = ("src", "thumb")
 
 
 class PartOfSpeechSerializer(serializers.ModelSerializer):
     class Meta:
-        model = models.PartOfSpeech
+        model = PartOfSpeech
         fields = ("abbrev", "full", "description", "section_url")
 
 
 class LittlePartOfSpeechSerializer(serializers.ModelSerializer):
     class Meta:
-        model = models.PartOfSpeech
+        model = PartOfSpeech
         fields = ("abbrev", "full")
 
 
 class SpeakerSerializer(serializers.ModelSerializer):
     class Meta:
-        model = models.Speaker
+        model = Speaker
         fields = ("image", "href", "initials", "primary_name",
                   "ojibwe_name", "english_name", "community", "region",
                   "description")
@@ -37,26 +54,26 @@ class SpeakerSerializer(serializers.ModelSerializer):
 
 class LittleSpeakerSerializer(serializers.ModelSerializer):
     class Meta:
-        model = models.Speaker
+        model = Speaker
         fields = ("href", "initials", "primary_name",
                   "ojibwe_name", "english_name")
 
 
 class NewsSerializer(serializers.ModelSerializer):
     class Meta:
-        model = models.News
+        model = News
         fields = ("title", "date", "html")
 
 
 class AudioSerializer(serializers.ModelSerializer):
     class Meta:
-        model = models.Audio
+        model = Audio
         fields = ("regular", "mobile")
 
 
 class PossSerializer(serializers.ModelSerializer):
     class Meta:
-        model = models.Poss
+        model = Poss
         fields = ("abbrev", "full")
 
 
@@ -64,7 +81,7 @@ class SentenceExampleAudioRecSerializer(serializers.ModelSerializer):
     speaker = LittleSpeakerSerializer(required=False)
 
     class Meta:
-        model = models.SentenceExampleAudioRec
+        model = SentenceExampleAudioRec
         fields = ("speaker", "audio")
         depth = 1
 
@@ -73,7 +90,7 @@ class AudioForBasicFormAudioRecSerializer(serializers.ModelSerializer):
     speaker = LittleSpeakerSerializer(required=False)
 
     class Meta:
-        model = models.AudioForBasicFormAudioRec
+        model = AudioForBasicFormAudioRec
         fields = ("speaker", "audio")
         depth = 1
 
@@ -82,7 +99,7 @@ class AdditionalAudioAudioRecSerializer(serializers.ModelSerializer):
     speaker = LittleSpeakerSerializer(required=False)
 
     class Meta:
-        model = models.AdditionalAudioAudioRec
+        model = AdditionalAudioAudioRec
         fields = ("speaker", "audio")
         depth = 1
 
@@ -91,7 +108,7 @@ class AudioForBasicFormSerializer(serializers.ModelSerializer):
     audio_rec = AudioForBasicFormAudioRecSerializer(many=True)
 
     class Meta:
-        model = models.AudioForBasicForm
+        model = AudioForBasicForm
         fields = ("ojibwe", "poss", "audio_rec")
         depth = 1
 
@@ -100,7 +117,7 @@ class AdditionalAudioSerializer(serializers.ModelSerializer):
     audio_rec = AdditionalAudioAudioRecSerializer(many=True)
 
     class Meta:
-        model = models.AdditionalAudio
+        model = AdditionalAudio
         fields = ("ojibwe", "poss", "audio_rec")
         depth = 1
 
@@ -109,40 +126,40 @@ class SentenceExampleSerializer(serializers.ModelSerializer):
     audio_rec = SentenceExampleAudioRecSerializer(many=True)
 
     class Meta:
-        model = models.SentenceExample
+        model = SentenceExample
         fields = ("ojibwe", "english", "audio_rec")
 
 
 class RegionSerializer(serializers.ModelSerializer):
     class Meta:
-        model = models.Region
+        model = Region
         fields = ("abbrev", "full", "description")
 
 
 class InflectionalFormSerializer(serializers.ModelSerializer):
     class Meta:
-        model = models.InflectionalForm
+        model = InflectionalForm
         fields = ("form", "poss")
         depth = 1
 
 
 class ImageCollectionSerializer(serializers.ModelSerializer):
     class Meta:
-        model = models.ImageCollection
+        model = ImageCollection
         fields = ("url", "copyright", "title", "description", "image")
         depth = 1
 
 
 class DocumentCollectionSerializer(serializers.ModelSerializer):
     class Meta:
-        model = models.DocumentCollection
+        model = DocumentCollection
         fields = ("url", "copyright", "title", "description", "body",
                   "bibliography")
 
 
 class VideoCollectionSerializer(serializers.ModelSerializer):
     class Meta:
-        model = models.VideoCollection
+        model = VideoCollection
         fields = ("url", "copyright", "title", "description", "video")
         depth = 1
 
@@ -157,7 +174,7 @@ class GenericCollectionLinkSerializer(serializers.Serializer):
 class ImageResourceSerializer(serializers.ModelSerializer):
     righthref = serializers.PrimaryKeyRelatedField(read_only=True)
     class Meta:
-        model = models.ImageResource
+        model = ImageResource
         fields = ("image", "righthref", "righttext")
         depth = 1
 
@@ -165,14 +182,14 @@ class ImageResourceSerializer(serializers.ModelSerializer):
 class DocumentResourceSerializer(serializers.ModelSerializer):
     righthref = serializers.PrimaryKeyRelatedField(read_only=True)
     class Meta:
-        model = models.DocumentResource
+        model = DocumentResource
         fields = ("righthref", "righttext")
 
 
 class VideoResourceSerializer(serializers.ModelSerializer):
     righthref = serializers.PrimaryKeyRelatedField(read_only=True)
     class Meta:
-        model = models.VideoResource
+        model = VideoResource
         fields = ("image", "righthref", "righttext")
         depth = 1
 
@@ -180,13 +197,13 @@ class VideoResourceSerializer(serializers.ModelSerializer):
 class TinyLinkSerializer(serializers.ModelSerializer):
     part_of_speech = serializers.PrimaryKeyRelatedField(read_only=True)
     class Meta:
-        model = models.MainEntry
+        model = MainEntry
         fields = ('url', 'head_lemma', 'part_of_speech')
 
 
 class SmallLinkSerializer(serializers.ModelSerializer):
     class Meta:
-        model = models.MainEntry
+        model = MainEntry
         fields = ('url', 'head_lemma', 'part_of_speech', 'region')
         depth = 1
 
@@ -200,7 +217,7 @@ class MediumLinkSerializer(serializers.ModelSerializer):
                                                            read_only=True)
 
     class Meta:
-        model = models.MainEntry
+        model = MainEntry
         fields = ('url', 'head_lemma', 'part_of_speech', 'gloss',
                   'head_audio', 'head_image',
                   'region', 'imageresource_set', 'videoresource_set',
@@ -212,7 +229,7 @@ class WordFamilyPairSerializer(serializers.ModelSerializer):
     member = MediumLinkSerializer()
 
     class Meta:
-        model = models.WordFamilyPair
+        model = WordFamilyPair
         fields = ("kind", "member")
         depth = 1
 
@@ -222,7 +239,7 @@ class WordFamilySerializer(serializers.ModelSerializer):
     members = WordFamilyPairSerializer(many=True)
 
     class Meta:
-        model = models.WordFamily
+        model = WordFamily
         fields = ("head", "members")
         depth = 1
 
@@ -231,7 +248,7 @@ class RelatedWordSerializer(serializers.ModelSerializer):
     mainentry_set = MediumLinkSerializer(many=True)
 
     class Meta:
-        model = models.RelatedWord
+        model = RelatedWord
         fields = ("title", "mainentry_set")
 
 
@@ -247,7 +264,7 @@ class SearchLinkSerializer(serializers.ModelSerializer):
                                                            read_only=True)
 
     class Meta:
-        model = models.MainEntry
+        model = MainEntry
         fields = ('url', 'head_lemma', 'part_of_speech', 'gloss',
                   'head_audio', 'head_image', 'word_family',
                   'paired_with_inv', 'see_also_inv', 'redirect_inv',
@@ -256,8 +273,13 @@ class SearchLinkSerializer(serializers.ModelSerializer):
         depth = 1
 
 
+MainEntryNestedModels = (
+    AudioForBasicForm, AdditionalAudio, SentenceExample, InflectionalForm,
+    ImageResource, VideoResource, DocumentResource
+)
 class MainEntrySerializer(serializers.ModelSerializer):
     head_speaker = LittleSpeakerSerializer(required=False)
+    history_set = HistorySetSerializer(required=False)
     part_of_speech = LittlePartOfSpeechSerializer(required=False)
     paired_with_inv = SmallLinkSerializer(many=True)
     redirect_inv = SmallLinkSerializer(many=True)
@@ -273,8 +295,9 @@ class MainEntrySerializer(serializers.ModelSerializer):
     documentresource_set = DocumentResourceSerializer(many=True)
 
     class Meta:
-        model = models.MainEntry
-        fields = ('url', 'head_lemma', 'part_of_speech', 'notes', 'gloss',
+        model = MainEntry
+        fields = ('url', 'old_url', 'head_lemma', 'part_of_speech', 'history_set',
+                  'notes', 'gloss',
                   'head_speaker', 'head_audio', 'head_image',
                   'paired_with_inv', 'redirect_inv',
                   'word_family', 'related_words', 'word_parts',
@@ -284,13 +307,52 @@ class MainEntrySerializer(serializers.ModelSerializer):
                   'videoresource_set', 'documentresource_set')
         depth = 1
 
+    def validate(self, data): return data
+
+    @staticmethod
+    def main_entry_url_synthesize(dict_):
+        head_lemma = dict_['head_lemma']
+        part_of_speech = dict_['part_of_speech']['abbrev']
+
+        retval = head_lemma + "-" + part_of_speech
+        retval = re.sub(r"[ +']", "-", retval)
+        retval = re.sub(r"[-]{2,}", "-", retval)
+        return retval
+
+    def create(self, validated_data):
+        replace_url = validated_data.pop('url')
+        old = MainEntry.objets.get(pk=replace_url)
+        old.url = old.old_url
+        old.save()
+        new_url = main_entry_url_synthesize(validated_data)
+        new_old_url = new_url + str(int(time.time()))
+        new = MainEntry(url=new_url, old_url=new_old_url, history_set=old.history_set)
+        new.save()
+        h = History(new.history_set, new.old_url, datetime.now())
+        h.save()
+        if new_url != old.url:
+            wf = old.members().all()
+            for w in old.members().all():
+                w.member_id = new_url
+                w.save()
+            r = old.related_words
+            if r:
+                r.mainentry_set.remove(old)
+                r.mainentry_set.add(new)
+                r.save()
+            #finally
+            old.url = old.old_url
+            old.save()
+
+
 
 class WordPartSerializer(serializers.ModelSerializer):
     words_that_use_this_part = MediumLinkSerializer(many=True)
+    history_set = HistorySetSerializer(required=False)
 
     class Meta:
-        model = models.WordPart
-        fields = ('url', 'title', 'type', 'gloss', 'subtypes',
+        model = WordPart
+        fields = ('url', 'old_url', 'history_set' 'title', 'type', 'gloss', 'subtypes',
                   'words_that_use_this_part')
 
 
@@ -299,7 +361,7 @@ class KeywordGroupSerializer(serializers.ModelSerializer):
     keyword = None
 
     class Meta:
-        model = models.KeywordGroup
+        model = KeywordGroup
         fields = ("name", "mainentry_set")
 
 
@@ -307,7 +369,29 @@ class KeywordSerializer(serializers.ModelSerializer):
     keywordgroup_set = KeywordGroupSerializer(many=True)
 
     class Meta:
-        model = models.Keyword
+        model = Keyword
         fields = ("name", "description", "distinguisher", "pos",
                   "keywordgroup_set")
         depth = 1
+
+
+class Utilities:
+    @staticmethod
+    def new_audio_for_basic_forms_index(count):
+        retval = AudioForBasicForm.objects.all().aggregate(Max('audio_for_basic_forms_index'))['audio_for_basic_forms_index__max']+1
+        return list(range(retval, retval+count))
+
+    @staticmethod
+    def new_additional_audio_index(count):
+        new_additional_audio_id = AdditionalAudio.objects.all().aggregate(Max('additional_audio_index'))['additional_audio_index__max']+1
+        return list(range(retval, retval+count))
+
+    @staticmethod
+    def new_sentence_examples_index(count):
+        new_sentence_example_id = SentenceExample.objects.all().aggregate(Max('sentence_examples_index'))['sentence_examples_index__max']+1
+        return list(range(retval, retval+count))
+
+    @staticmethod
+    def new_inflectional_forms_index(count):
+        retval = InflectionalForm.objects.all().aggregate(Max('inflectional_forms_index'))['inflectional_forms_index__max']+1
+        return list(range(retval, retval+count))

@@ -44,9 +44,8 @@ export default {
   methods :{
   submit: function() {
     var self = this
-    var data =  {username: this.email, password: this.password}; // The exact data doesn't matter
-    var csrftoken = this.csrftoken; // Using JS Cookies library
-    console.log(this.csrftoken)
+    var data =  {username: this.email, password: this.password};
+    var csrftoken = this.csrftoken;
     var headers = {'X-CSRFToken': csrftoken};
     axios.post('/login',data,{headers: headers}).
       then( data => {
