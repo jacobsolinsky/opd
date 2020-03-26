@@ -1,8 +1,27 @@
 import re
-from .persons import *
 import numpy as np
-from weighted_levenshtein import lev, osa, dam_lev
+from weighted_levenshtein import lev
 from functools import partial
+
+
+default_variants = {
+        'banii/bane': 'bane',
+        'siin/sii': 'siin',
+        'dubitative-aa-echo': True,
+        'widog': True,
+        'sinoonaan/sinowaan': 'sinoonaan',
+        'shinaang?': 'shinaang'
+        }
+variants_available = {
+        'banii/bane': ['bane', 'banii'],
+        'siin/sii': ['siin', 'sii'],
+        'dubitative-aa-echo': [True, False],
+        'widog': [True, False],
+        'sinoonaan/sinowaan': ['sinoonaan', 'sinowaan'],
+        'shinaang?': ['shinaang', 'shinaan', 'shinaam']
+        }
+current_variants = []
+
 '''
 Internal orthography correspondence
 to double vowel orthography
@@ -101,8 +120,7 @@ ojibwe_lev = partial(lev, insert_costs=insert_costs,
                           delete_costs=delete_costs,
                           substitute_costs=substitution_costs)
 
-
-def fromdoublevowel(string):
+def from_double_vowel(string):
     skip = False
     result = []
     for i, letter in enumerate(string):
@@ -111,7 +129,7 @@ def fromdoublevowel(string):
         elif letter == 'e':
             result.append('E')
         elif i == len(string) - 1:
-            result.append(letter)
+            result.append(letter.lower())
         elif letter in 'aio' and string[i+1] == letter:
             result.append(letter.upper())
             skip = True
@@ -120,11 +138,13 @@ def fromdoublevowel(string):
             skip = True
         elif letter == "'":
             result.append('h')
-        else:
+        elif letter == 'N':
             result.append(letter)
-    return result
+        else:
+            result.append(letter.lower())
+    return ''.join(result)
 
-def todoublevowel(string):
+def to_double_vowel(string):
     result = []
     for letter in string:
         if letter in 'AIO':
@@ -148,8 +168,6 @@ def todoublevowel(string):
             result.append(letter)
     return ''.join(result)
 
-def replace_position(position, list1, list2):
-    return list1[:position] + list2 + list1[position+1:]
 
 
 
@@ -196,674 +214,813 @@ INITIALVOWELCHANGES = {
         'O':'wA'
         }
 class Morpheme():
-    def __init__(self, form):
-        self.form = fromdoublevowel(form)
-        self.stem = False
-        self.modal = False
-        self.peripheral = False
-        self.null = False
-    def __repr__(self):
-        return todoublevowel(self.form)
-    def prep(self,  verb):
+    stem = False
+    modal = False
+    peripheral = False
+    default_form = ''
+    def __init__(self, verb):
         self.verb = verb
-        self.position = verb.morphemelist.index(self)
-        if self.position == len(self.verb.morphemelist) -1:
-            self.preceding = self.verb.morphemelist[self.position-1]
-            self.ps = ''
-            for morpheme in self.verb.morphemelist[:self.position]:
-                self.ps = self.ps+''.join(morpheme.form)
-            self.following = Nullmorpheme()
-            self.fs = ''
-        elif self.position == 0:
-            self.following = self.verb.morphemelist[self.position+1]
-            self.fs = ''.join(self.following.form)
-            self.preceding = Nullmorpheme()
-            self.ps = ''
-        else:
-            self.preceding = self.verb.morphemelist[self.position-1]
-            self.ps = ''
-            for morpheme in self.verb.morphemelist[:self.position]:
-                self.ps = self.ps+''.join(morpheme.form)
-            self.following = self.verb.morphemelist[self.position+1]
-            self.fs = ''.join(self.following.form)
+        self.form = self.default_form
+
+
+
+    @property
+    def position(self):
+        return list(self.verb.slots.keys()).index(self.slot)
+
+    @property
+    def ps(self):
+        return ''.join([
+            m.form for m in list(self.verb.slots.values())[:self.position] if m
+            ])
+
+    @property
+    def fs(self):
+        return ''.join([
+            m.form for m in list(self.verb.slots.values())[self.position + 1:] if m
+            ])
+
+    @property
+    def preceding(self):
+        for m in reversed(list(self.verb.slots.values())[:self.position]):
+            if m:
+                return m
+        return NullMorpheme()
+
+    @property
+    def following(self):
+        for m in list(self.verb.slots.values())[self.position+1:]:
+            if m:
+                return m
+        return NullMorpheme()
+
+    #Palatalizes final consonant of morpheme
+    def final_palatalize(self):
+        if re.search(rf'[{Y}]$', self.form):
+            self.form = self.form[:-1] + PALATALIZATIONS[self.form[-1]]
+
+    #Lenites initial consonant of morpheme
+    def initial_lenite(self):
+        if re.search(rf'^[{F}]', self.form):
+            self.form = LENITIONS[self.form[0]] + self.form[1:]
+
+    #Fortifies initial consonant of morpheme
+    def initial_fortify(self):
+        if re.search(rf'^[{L}]', self.form):
+            self.form = FORTIFICATIONS[self.form[0]] + self.form[1:]
+
+    def initial_vowel_change(self):
+        initial_vowel = re.search(rf'^([{C}]*)([{v+V}])', self.form).group(2)
+        self.form = re.sub(rf'^([{C}]*)([{v+V}])', r'\g<1>' +INITIALVOWELCHANGES[initial_vowel], self.form)
+
+    def initial_vowel_lengthen(self):
+        if re.search(rf'^([{C}]*)([{v}])', self.form):
+            initial_vowel = re.search(rf'^([{C}]*)([{v}])', self.form).group(2)
+            self.form = re.sub(rf'^([{C}]*)([{v}])', r'\g<1>' + LENGTHENINGS[initial_vowel], self.form)
+
+    def final_vowel_lengthen(self):
+        if re.search(rf'[{v}]$', self.form):
+            self.form = re.sub(rf'[{v}]$', LENGTHENINGS[self.form[-1]], self.form)
+
+    #Appends an o to the end of a morpheme
+    def o_epenthesis(self):
+        if re.search(f'[{C}]$', self.form):
+            self.form += 'o'
+
+    #Appends an ε to the end of a morpheme
+    def e_epenthesis(self):
+        if re.search(f'[{C}]w$', self.form):
+            self.form = self.form[:-1] + 'o'
+        elif re.search(f'[{C}]$', self.form):
+            self.form += 'e'
+
+    #Appends an i to the end of a morpheme and palatalizes self.preceding consonant, if possible
+    def i_epenthesis(self):
+        if re.search(f'[{C}]w$',self.form):
+            self.form = self.form[:-1] + 'o'
+        elif re.search(f'[{C}]$', self.form):
+            self.final_palatalize()
+            self.form += 'i'
+
+    #These are the only
+    def apocope(self):
+        if re.search(f'[{V}]', self.form) or len(re.findall(f'[{v}]', self.form)) >2:
+            if re.search(f'[{v}]$', self.form):
+                self.form = self.form[:-1]
+
+    def final_w_loss(self):
+        if re.search(f'[{C}]w$', self.form):
+            self.form = self.form[:-1]
+
+
+
+    def __repr__(self):
+        return to_double_vowel(self.form)
 
     def mutate(self):
         if re.search(f'$[{C}]', self.ps):
-                i_epenthesis(self.preceding)
-class Nullmorpheme(Morpheme):
-    def __init__(self):
-        super().__init__('')
-        self.null = True
+            self.preceding.i_epenthesis()
+
+class NullMorpheme(Morpheme):
+    peripheral = False
+    modal = False
+    stem = False
+    form = ''
+    def __init__(self, *args):
+        pass
+
+    def __bool__(self):
+        return False
+
+
 #PERSONAL SUFFIXES
 class Ni(Morpheme):
-    def __init__(self):
-        super().__init__('ni')
+    default_form = 'ni'
+    slot = 'personal_prefix'
     def mutate(self):
         if re.search('^b', self.fs):
-            self.form = list('im')
+            self.form = 'im'
         elif re.search(f'^[{L}]', self.fs):
-            self.form = list('in')
+            self.form = 'in'
         elif re.search(f'^[{v}AE]', self.fs):
-            self.form = list('ind')
+            self.form = 'ind'
             if re.search('^o', self.fs):
-                initial_vowel_lengthen(self.following)
+                self.following.initial_vowel_lengthen()
         elif re.search('^[OI]', self.fs):
-            self.form = list('n')
+            self.form = 'n'
 
 class Gi(Morpheme):
-    def __init__(self):
-        super().__init__('gi')
+    default_form = 'gi'
+    slot = 'personal_prefix'
     def mutate(self):
         if re.search(f'^[{v}AE]', self.fs):
-            self.form = list('gid')
+            self.form = 'gid'
             if re.search('^o', self.fs):
-                initial_vowel_lengthen(self.following)
+                self.following.initial_vowel_lengthen()
         elif re.search('^[OI]', self.fs):
-            self.form = list('g')
+            self.form = 'g'
 
 class O(Morpheme):
-    def __init__(self):
-        super().__init__('o')
+    default_form = 'o'
+    slot = 'personal_prefix'
     def mutate(self):
         if re.search(f'^[{v}AE]', self.fs):
-            self.form = list('od')
+            self.form = 'od'
             if re.search('^o', self.fs):
-                initial_vowel_lengthen(self.following)
+                self.following.initial_vowel_lengthen()
         elif re.search('^I', self.fs):
-            self.form = ['w']
+            self.form = 'w'
         elif re.search('^O', self.fs):
-            self.form = []
+            self.form = ''
 #Stem class:
 class Stem(Morpheme):
-    def __init__(self, string):
-        super().__init__(string)
-        self.stem = True
+    slot = 'stem'
+    def __init__(self, verb, string):
+        self.form = from_double_vowel(string)
+        self.verb = verb
 
 #THEME SIGNS 1
 class M(Morpheme):
-    def __init__(self):
-        super().__init__('m')
+    default_form = 'm'
+    slot = 'm_obviative'
     def mutate(self):
-        e_epenthesis(self.preceding)
+        self.preceding.e_epenthesis()
 
 class I(Morpheme):
-    def __init__(self):
-        super().__init__('')
+    default_form = ''
+    slot = 'theme_sign'
     def mutate(self):
-        i_epenthesis(self.preceding)
-        self.form.append(self.preceding.form.pop())
+        self.preceding.i_epenthesis()
         if self.following.peripheral:
-            self.verb.morphemelist.remove(self.following)
-        if self.following.modal:
-            self.form.extend(list('nA'))
-        if type(self.following) == Nimperative:
-            self.verb.morphemelist.remove(self.following)
-        elif type(self.following) == Og:
-            self.following.form == ['k']
+            self.verb.slots['minor'] = None
+
+
 class Am(Morpheme):
-    def __init__(self):
-        super().__init__('am')
+    default_form = 'am'
+    slot = 'theme_sign'
     def mutate(self):
         if type(self.following) == Ni_animate:
             pass
         elif type(self.following) == Nimperative:
-            self.form = ['a']
+            self.form = 'a'
+        elif type(self.following) == Ng:
+            self.e_epenthesis()
         elif re.search(f'^[{Q}]', self.fs):
-            self.form = ['A']
+            self.form = 'A'
+
+class Aam(Morpheme):
+    default_form = 'Am'
+    slot = 'theme_sign'
+    def mutate(self):
+        self.preceding.form = self.preceding.form[:-1]
+        if type(self.following) == Ng:
+            self.e_epenthesis()
+        elif re.search(f'^[{Q}]', self.fs):
+            self.form = 'A'
+
 #THEME SIGNS 2
 class Aa(Morpheme):
-    def __init__(self):
-        super().__init__('aa')
-    def mutate(self):
-        if type(self.following) == Ind:
-            self.form = []
-class N1stperson(Morpheme):
-    def __init__(self):
-        super().__init__('n')
+    default_form = 'A'
+    def __init__(self, verb, slot):
+        self.verb = verb
+        self.slot = slot
+        self.form = self.default_form
+
+class N2ndPerson(Morpheme):
+    default_form = 'n'
+    def __init__(self, verb, slot):
+        self.form = self.default_form
+        self.verb = verb
+        self.slot = slot
+
     def mutate(self):
         #AW Contraction
         if re.search('aw$', self.ps):
-            self.preceding.form.pop()
-            self.preceding.form[-1] = 'O'
+            self.preceding.form = self.preceding.form[:-2] + 'O'
         else:
-            e_epenthesis(self.preceding)
-        if type(self.following) in [K2ndperson, Si]:
-            self.form.pop()
+            self.preceding.e_epenthesis()
+        if type(self.following) == Si:
+            self.form = self.form[:-1]
         if type(self.following) == Mw:
-            self.form.extend(list('in'))
+            self.form += 'in'
+
+
 class Go(Morpheme):
-    def __init__(self):
-        super().__init__('go')
+    default_form = 'go'
+    slot = 'theme_sign'
     def mutate(self):
         #AW Contraction
         if re.search('aw$', self.ps):
-            self.preceding.form.pop()
-            self.preceding.form[-1] = 'A'
-        elif self.preceding.form == list('iN'):
-            self.preceding.form == ['']
+            self.preceding.form = self.preceding.form[:-2] + 'A'
+        elif self.preceding.form == 'iN':
+            self.preceding.form = 'i'
         else:
-            e_epenthesis(self.preceding)
+            self.preceding.e_epenthesis()
         if self.following.peripheral:
-            self.form[-1] = 'O'
+            self.form = self.form[:-1] + 'O'
         if not self.following:
-            self.form.pop()
+            self.form = self.form[:-1]
+
+
 class Goo(Morpheme):
-    def __init__(self):
-        super().__init__('goo')
+    default_form = 'gO'
+    slot = 'theme_sign'
     def mutate(self):
         #AW Contraction
         if re.search('aw$', self.ps):
-            self.preceding.form.pop()
-            self.preceding.form[-1] = 'A'
-        elif self.preceding.form == list('iN'):
-            self.preceding.form == ['']
+            self.preceding.form = self.preceding.form[:-2] + 'A'
+        elif self.preceding.form == 'iN':
+            self.preceding.form = 'i'
         else:
-            e_epenthesis(self.preceding)
+            self.preceding.e_epenthesis()
+
+
 class Shi(Morpheme):
-    def __init__(self):
-        super().__init__('shi')
+    default_form = 'Si'
+    slot = 'theme_sign'
     def mutate(self):
-        if self.following.null or type(self.following) == Aam:
-            self.form = list('Sin')
+        self.preceding.i_epenthesis()
+
 #Negative
 class Si(Morpheme):
-    def __init__(self):
-        super().__init__('si')
+    default_form = 'si'
+    slot = 'negative'
     def mutate(self):
         if re.search(f'[{Q}]$', self.ps):
-            self.preceding.form[-1] = 'n'
-            initial_lenite(self)
+            self.preceding.form = self.preceding.form[:-1] + 'n'
+            self.initial_lenite()
 
 class Sin(Morpheme):
-    def __init__(self):
-        super().__init__('sin')
+    default_form = 'sin'
+    slot = 'negative'
     def mutate(self):
         if re.search(f'[{Q}]$', self.ps):
-            self.preceding.form[-1] = 'n'
-            initial_lenite(self)
+            self.preceding.form = self.preceding.form[:-1] + 'n'
+            self.initial_lenite()
         elif re.search(f'd$', self.ps):
-            self.preceding.form.pop()
+            self.preceding.form = self.preceding.form[:-1]
+
+
 class Wnegative(Morpheme):
-    def __init__(self):
-        super().__init__('w')
+    default_form = 'w'
+    slot = 'negative_w'
     def mutate(self):
             if type(self.following) == Ng:
                 if self.verb.dubitative:
                     return
                 else:
-                    self.form = []
+                    self.form = ''
+                    return
+            elif type(self.following) == D:
+                self.form = ''
+                return
+            elif self.following.peripheral:
+                self.preceding.final_vowel_lengthen()
+                self.form = ''
+                return
+            if type(self.following) == N2ndPerson and type(self.preceding) == N2ndPerson:
+                self.form = 'O'
+                return
+            if (type(self.following) == NullMorpheme or type(self.following) in (W3rdperson, Local_singular)
+            and type(self.following.following) == NullMorpheme)\
+            and type(self.preceding) == Si:
+                if self.verb.variants['siin/sii'] == 'siin':
+                    global current_variants, default_variants
+                    self.preceding.form = self.preceding.form[:-1] + 'In'
+                    self.form = ''
+                    current_variants.append({**default_variants, 'siin/sii': 'sii'})
+                    return
+                elif self.verb.variants['siin/sii'] == 'sii':
+                    self.preceding.form = self.preceding.form[:-1] + 'I'
+                    self.form = ''
                     return
             if re.search(f'[{C}]$', self.ps):
-                o_epenthesis(self.preceding)
-            if type(self.preceding) == Ni_inanimate:
-                self.form = []
-            elif self.following.peripheral:
-                final_vowel_lengthen(self.preceding)
-                self.form = []
-            elif type(self.following) == D and self.fs == 'd' or type(self.following) == G:
-                self.following.form = list('gw')
-                self.form = []
-            elif type(self.following) == K2ndperson:
-                self.form = []
+                self.preceding.o_epenthesis()
+                if re.search(f'^[{C}]', self.fs):
+                    self.form = ''
             elif re.search(f'^[{C}]', self.fs):
-                final_vowel_lengthen(self.preceding)
-                self.form = []
-class Nnegativeaugment(Morpheme):
-    def __init__(self):
-        super().__init__('n')
+                self.preceding.final_vowel_lengthen()
+                self.form = ''
+
+
+
+
+
 class Wdelayed(Morpheme):
-    def __init__(self):
-        super().__init__('w')
+    default_form = 'w'
+    slot = 'w_delayed'
     def mutate(self):
-        o_epenthesis(self.preceding)
+        self.preceding.o_epenthesis()
         if re.search(self.fs, f'^[{C}]'):
-            final_vowel_lengthen(self.preceding)
-            self.form = []
+            self.preceding.final_vowel_lengthen()
+            self.form = ''
+
+
 class Wdubitative(Morpheme):
-    def __init__(self):
-        super().__init__('w')
+    default_form = 'w'
+    slot = 'dubitative_w'
     def mutate(self):
-        o_epenthesis(self.preceding)
         if type(self.following) == Ng:
             if self.verb.dubitative:
-                return
-        if type(self.following) == D and self.fs == 'd' or type(self.following) == G:
-            self.following.form = list('gw')
-            self.form = []
+                self.preceding.o_epenthesis()
+                self.form = 'w'
+            else:
+                self.form = ''
+            return
         elif re.search(f'^[{C}]', self.fs):
             if not self.preceding.stem:
-                final_vowel_lengthen(self.preceding)
-            self.form = []
+                self.preceding.final_vowel_lengthen()
+            self.form = ''
+        self.preceding.o_epenthesis()
 
 #CENTRAL SIGNS
 class Mw(Morpheme):
-    def __init__(self):
-        super().__init__('mw')
+    default_form = 'mw'
+    slot = 'major'
     def mutate(self):
-        e_epenthesis(self.preceding)
+        self.preceding.e_epenthesis()
         if self.following.peripheral:
-            self.verb.morphemelist.remove(self.following)
+            self.verb.slots['minor'] = None
         if self.following.modal:
-            self.form.append('A')
+            self.form += 'A'
+
 class Min(Morpheme):
-    def __init__(self):
-        super().__init__('min')
+    default_form = 'min'
+    slot = 'major'
     def mutate(self):
-        e_epenthesis(self.preceding)
+        self.preceding.e_epenthesis()
         if self.following.peripheral:
-            self.verb.morphemelist.remove(self.following)
+            self.verb.slots['minor'] = None
         if self.following.modal:
-            self.form.append('A')
+            self.form += 'A'
 
 class Local_singular(Morpheme):
-    def __init__(self):
-        super().__init__('')
+    default_form = ''
+    slot = 'major'
     def mutate(self):
         if self.following.modal:
-            self.form = list('nA')
-        if self.form == list('nA'):
+            self.form = 'nA'
+        if self.form == 'nA':
             if type(self.preceding) == Wnegative:
-                self.preceding.form = []
-                final_vowel_lengthen(self.preceding.preceding)
+                self.preceding.form = ''
+                self.preceding.preceding.final_vowel_lengthen()
             else:
-                e_epenthesis(self.preceding)
+                self.preceding.e_epenthesis()
 
 class Nsingular(Morpheme):
-    def __init__(self):
-        super().__init__('n')
+    default_form = 'n'
+    slot = 'major'
     def mutate(self):
         if self.following.modal:
-            self.form.append('A')
+            self.form += 'A'
 
 class Naan(Morpheme):
-    def __init__(self):
-        super().__init__('naan')
+    default_form = 'nAn'
+    slot = 'major'
     def mutate(self):
         if self.following.modal:
-            self.form.pop()
+            self.form = self.form[:-1]
         if self.following.peripheral:
-            self.form.append('i')
+            self.form += 'i'
 
 class Daa(Morpheme):
-    def __init__(self):
-        super().__init__('daa')
+    default_form = 'dA'
+    slot = 'major'
     def mutate(self):
         if self.following.peripheral:
-            self.form += list('ni')
+            self.form += 'ni'
         if re.search('m$', self.ps):
-            self.preceding.form[-1] = 'n'
+            self.preceding.form = self.preceding.form[:-1] + 'n'
+
 
 class Naawaa(Morpheme):
-    def __init__(self):
-        super().__init__('naawaa')
+    default_form = 'nAwA'
+    slot = 'major'
+
+
 class W3rdperson(Morpheme):
-    def __init__(self):
-        super().__init__('w')
+    default_form = 'w'
+    slot = 'major'
     def mutate(self):
-        if self.following.null:
-            self.form = ['x']
+        if self.following.modal:
+            self.preceding.o_epenthesis()
+            if type(self.following) == Ban:
+                #ooban
+                self.preceding.final_vowel_lengthen()
+                self.form = ''
+            elif type(self.following) == Dog:
+                #widog, owidog
+                if self.verb.variants['widog']:
+                    global current_variants, default_variants
+                    self.form = 'wi'
+                    current_variants.append({**default_variants, 'widog': False})
+                else:
+                    #odog
+                    self.form = ''
             return
-        if not self.following.peripheral:
-            o_epenthesis(self.preceding)
-        if type(self.following) == Dog:
-            if (not self.verb.subj.animacy) and self.verb.obj is None and (type(self.preceding) in [Sin, Stem]) or\
-            (type(self.preceding) == Wnegative and type(self.following == Dog) and type(self.preceding.preceding) == Si):
-                self.form = []
-            else:
-                self.form = list('wi')
+        if type(self.preceding) in (Stem, Goo, Wnegative) and not self.following:
+            self.form =  'x'
+            return
+        elif not self.following.peripheral:
+            self.preceding.o_epenthesis()
+        elif self.following.peripheral:
+            if re.search(f'[{C}]$', self.ps):
+                self.form = 'O'
         elif re.search(f'^[{C}]', self.fs):
-            final_vowel_lengthen(self.preceding)
-            self.form = []
+            self.preceding.final_vowel_lengthen()
+            self.form = ''
+
+class W0thPerson(Morpheme):
+    default_form = 'w'
+    slot = 'major'
+    def mutate(self):
+        if type(self.following) == NullMorpheme:
+            self.form = ''
+        elif type(self.following) == Dog and type(self.preceding) == Ni_inanimate:
+            self.form = 'wi'
+        elif type(self.following) == Ban:
+            if re.search(fr'[{C}]$', self.ps):
+                self.form = 'O'
+            elif re.search(fr'[{v+V}]$', self.ps):
+                self.preceding.final_vowel_lengthen()
+                self.form = ''
+        elif type(self.preceding) == Sin and type(self.following) in (NullMorpheme, An_):
+            self.form = 'On'
+            self.verb.slots['minor'] = NullMorpheme()
 
 #Conjunct Indexing Morphemes
 class Aan(Morpheme):
-    def __init__(self):
-        super().__init__('aan')
+    default_form = 'An'
+    slot = 'major'
     def mutate(self):
         if re.search(f'[{v+V}]$', self.ps):
-            self.preceding.form.append('y')
+            self.preceding.form += 'y'
         if type(self.following) == Ban:
-            self.form[-1] = 'm'
-            initial_vowel_lengthen(self.following)
+            self.form = self.form[:-1] + 'm'
+            self.following.initial_vowel_lengthen()
         if self.following.peripheral:
-            i_epenthesis(self)
+            self.i_epenthesis()
+
+
 class Ag(Morpheme):
-    def __init__(self):
-        super().__init__('ag')
+    default_form = 'ag'
+    slot = 'major'
     def mutate(self):
-        if type(self.preceding) == Aa:
-            self.preceding.form = []
-            return
         if self.following.peripheral:
-            i_epenthesis(self)
+            self.i_epenthesis()
+
+
 class An(Morpheme):
-    def __init__(self):
-        super().__init__('an')
+    default_form = 'an'
+    slot = 'major'
     def mutate(self):
         if re.search(f'[{v+V}]$', self.ps):
-            self.preceding.form.append('y')
+            self.preceding.form += 'y'
         if type(self.following) == Ban:
-            self.form[-1] = 'm'
+            self.form = self.form[:-1] + 'm'
         if self.following.peripheral:
-            i_epenthesis(self)
+            self.i_epenthesis()
+
+
 class Ad(Morpheme):
-    def __init__(self):
-        super().__init__('ad')
+    default_form = 'ad'
+    slot = 'major'
     def mutate(self):
-        if type(self.preceding) == Aa:
-            self.preceding.form = []
-            return
         if self.following.peripheral:
-            i_epenthesis(self)
+            self.i_epenthesis()
+
+
 class Aang(Morpheme):
-    def __init__(self):
-        super().__init__('aang')
+    default_form = 'Ang'
+    slot = 'major'
     def mutate(self):
         if re.search(f'[{v+V}]$', self.ps):
-            self.preceding.form.append('y')
+            self.preceding.form += 'y'
         if self.following.peripheral:
-            i_epenthesis(self)
+            self.i_epenthesis()
+
+
 class Angid(Morpheme):
-    def __init__(self):
-        super().__init__('angid')
+    default_form = 'angid'
+    slot = 'major'
     def mutate(self):
-        if type(self.preceding) == Aa:
-            self.preceding.form = []
-        elif re.search(f'[{v+V}]$', self.ps):
-            self.preceding.form.append('y')
+        if re.search(f'[{v+V}]$', self.ps):
+            self.preceding.form += 'y'
         if self.following.peripheral:
-            i_epenthesis(self)
+            self.i_epenthesis()
+
+
 class Ang(Morpheme):
-    def __init__(self):
-        super().__init__('ang')
+    default_form = 'ang'
+    slot = 'major'
     def mutate(self):
-        if type(self.preceding) == Aa:
-            self.preceding.form = []
-        elif re.search(f'[{v+V}]$', self.ps):
-            self.preceding.form.append('y')
+        if re.search(f'[{v+V}]$', self.ps):
+            self.preceding.form += 'y'
         if self.following.peripheral:
-            i_epenthesis(self)
+            self.i_epenthesis()
+
+
 class Egw(Morpheme):
-    def __init__(self):
-        super().__init__('egw')
+    default_form = 'Egw'
+    slot = 'major'
     def mutate(self):
-        if type(self.preceding) == Aa:
-            self.preceding.form = []
-        elif re.search(f'[{v+V}]$', self.ps):
-            self.preceding.form.append('y')
-        if type(self.following) == Ban:
-            self.form[-1] = 'i'
-        if self.following.peripheral:
-            self.form[-1] = 'i'
+        if re.search(f'[{v+V}]$', self.ps):
+            self.preceding.form += 'y'
+        if type(self.following) == Ban or self.following.peripheral:
+            self.form = self.form[:-1] + 'i'
+
+
 class Ng(Morpheme):
-    def __init__(self):
-        super().__init__('ng')
+    default_form = 'ng'
+    slot = 'special'
     def mutate(self):
         if self.verb.dubitative:
-            self.form = list('Ing')
-        if self.form == list('ng'):
-            i_epenthesis(self.preceding)
+            self.form = 'Ing'
+        if self.form == 'ng':
+            self.preceding.i_epenthesis()
+
 
 class Ind(Morpheme):
-    def __init__(self):
-        super().__init__('ind')
+    default_form = 'ind'
+    slot = 'major'
     def Mutate(self):
         if self.following.peripheral:
-            i_epenthesis(self)
+            self.i_epenthesis()
 
 class Agogw(Morpheme):
-    def __init__(self):
-        super().__init__('agogw')
+    default_form = 'agogw'
+    slot = 'major'
     def mutate(self):
         if self.following.modal:
-            self.form = list('agOgw')
+            self.form = 'agOgw'
+
+
 class D(Morpheme):
-    def __init__(self):
-        super().__init__('d')
+    default_form = 'd'
+    slot = 'major'
+    def mutate(self):
+        if self.verb.dubitative or not self.verb.polarity:
+            self.form = 'gw'
+            if not self.verb.dubitative:
+                self.verb.slots['negative'].form = self.verb.slots['negative'].form[0] + 'i'
+        if self.form == 'gw':
+            self.preceding.o_epenthesis()
+        elif re.search(f'[{Q}]$', self.ps):
+            self.preceding.form = self.preceding.form[:-1] + 'n'
+            self.form = 'g'
+        elif type(self.following) == Ban:
+            self.following.form = 'p' + self.following.form[1:]
+            self.form = ''
+        if self.following.peripheral:
+            self.i_epenthesis()
+
+class G(Morpheme):
+    default_form = 'g'
+    slot = 'major'
     def mutate(self):
         if self.verb.dubitative:
-            self.form = list('gw')
-        if self.form == list('gw'):
-            o_epenthesis(self.preceding)
-        elif re.search(f'[{Q}]$', self.ps):
-            self.preceding.form[-1] = 'n'
-            self.form = ['g']
-        elif type(self.following) == Ban:
-            self.following.form[0] = 'p'
-            self.form = []
-        if self.following.peripheral:
-            i_epenthesis(self)
-class G(Morpheme):
-    def __init__(self):
-        super().__init__('g')
-    def mutate(self):
-        if self.form == list('gw'):
-            o_epenthesis(self.preceding)
+            self.form ='gw'
+            if not self.verb.polarity:
+                if type(self.preceding) == Sin:
+                    #sinoogwen, #sinoogobanen
+                    self.preceding.form += 'O'
+                    return
+                elif type(self.preceding) == Ni_inanimate:
+                    #sininigobanen
+                    if type(self.following) != Ban:
+                        #siniigwen
+                        self.preceding.final_vowel_lengthen()
+                        return
+                    return
+        if self.form == 'gw':
+            self.preceding.o_epenthesis()
         elif self.ps[-1] == 'd':
-            self.preceding.form.pop()
-            self.form = ['k']
+            self.preceding.form = self.preceding.form[:-1]
+            self.form = 'k'
+        if type(self.preceding) == Sin:
+            self.preceding.o_epenthesis()
         if type(self.following) == Ban:
-            i_epenthesis(self)
-class K2ndperson(Morpheme):
-    def __init__(self):
-        super().__init__('k')
+            self.i_epenthesis
+            if type(self.preceding) == Sin:
+                #sinoogiban
+                self.preceding.final_vowel_lengthen()
+
+class K2ndPerson(Morpheme):
+    default_form = 'k'
+    slot = 'major'
+    def mutate(self):
+        if self.verb.dubitative:
+            self.form = 'gw'
+        if type(self.preceding) == N2ndPerson:
+            self.preceding.form = self.preceding.form[1:]
+        if self.form == 'k' and self.following.peripheral:
+            self.i_epenthesis()
+
+
 class Waaw(Morpheme):
-    def __init__(self):
-        super().__init__('waaw')
+    default_form = 'wA'
+    def __init__(self, verb, slot):
+        self.verb = verb
+        self.slot = slot
+        self.form = self.default_form
     def mutate(self):
         if re.search(f'[{C}]w$', self.ps):
-            self.preceding.form.pop()
-        if re.search(f'^[{C}]', self.fs) or self.following.peripheral or \
-        type(self.following) == Nullmorpheme:
-            self.form.pop()
+            self.preceding.form = self.preceding.form[:-1]
+
+
 class Waa(Morpheme):
-    def __init__(self):
-        super().__init__('waa')
+    default_form = 'wA'
+    slot = 'special'
     def mutate(self):
-        o_epenthesis(self.preceding)
+        self.preceding.o_epenthesis()
+
+
 class Ni_animate(Morpheme):
-    def __init__(self):
-        super().__init__('ni')
+    default_form = 'ni'
+    slot = 'special'
     def mutate(self):
         if re.search(f'[{C}]$', self.ps):
-            e_epenthesis(self.preceding)
+            self.preceding.e_epenthesis()
         if self.following.modal:
-            self.form[-1] = 'A'
-        if self.following.peripheral:
-            self.verb.morphemelist.remove(self.following)
-            self.following = Nullmorpheme()
-        if self.following.null:
-            self.form.append('x')
+            self.form = self.form[:-1] + 'A'
+
 class Ni_inanimate(Morpheme):
-    def __init__(self):
-        super().__init__('ni')
+    default_form = 'ni'
+    slot = 'special'
     def mutate(self):
         if re.search(f'[{C}]$', self.ps):
-            e_epenthesis(self.preceding)
-        if self.following.null:
-            self.form.append('x')
+            self.preceding.e_epenthesis()
 
 
 class Kdelayed(Morpheme):
-    def __init__(self):
-        super().__init__('k')
+    default_form = 'k'
+    slot = 'mode'
     def mutate(self):
         if re.search(f'[{Q}]$', self.ps):
-            self.preceding.form[-1] = 'n'
-            initial_lenite(self)
+            self.preceding.form[-1] = self.preceding.form[:-1] + 'n'
+            self.initial_lenite()
+
 
 class Ke(Morpheme):
-    def __init__(self):
-        super().__init__('ke')
+    default_form = 'kE'
+    slot = 'mode'
     def mutate(self):
         if re.search(f'[{Q}]$', self.ps):
-            self.preceding.form[-1] = 'n'
-            initial_lenite(self)
-        if re.search(f'^[{V}]', ''.join(self.following.form)):
-            self.form.pop()
-class En(Morpheme):
-    def __init__(self):
-        super().__init__('en')
-    def mutate(self):
-        if type(self.preceding) == Og:
-            self.form[0] = 'o'
-class Aam(Morpheme):
-    def __init__(self):
-        super().__init__('aang')
+            self.preceding.form = self.preceding.form[:-1] + 'n'
+            self.initial_lenite()
+        if re.search(f'^[{V}]', self.fs):
+            self.form = self.form[:-1]
+
+
+
 
 class Ban(Morpheme):
-    def __init__(self):
-        super().__init__('ban')
-        self.modal = True
+    default_form = 'ban'
+    modal = True
+    slot = 'mode'
     def mutate(self):
         if not re.search('m$', self.ps):
-            e_epenthesis(self.preceding)
+            self.preceding.e_epenthesis()
         if self.following.peripheral:
-            self.form.append('E')
+            if self.verb.variants['banii/bane'] == 'bane':
+                self.form += 'E'
+                global current_variants, default_variants
+                current_variants.append({**default_variants, 'banii/bane': 'banii'})
+            elif self.verb.variants['banii/bane'] == 'banii':
+                self.form += 'I'
+
 class Dog(Morpheme):
-    def __init__(self):
-        super().__init__('dog')
-        self.modal = True
+    default_form = 'dog'
+    modal = True
+    slot = 'mode'
     def mutate(self):
-        if self.verb.conjunct:
-            self.form = list('En')
-            if type(self.preceding) == Waaw:
-                self.preceding.form += 'w'
         if self.following.peripheral:
-            if self.form == list('dog'):
-                self.form.extend(list('En'))
+            if self.form == 'dog':
+                self.form += 'En'
+
+class En_dubitative(Morpheme):
+    default_form = 'En'
+    slot = 'en'
+    def mutate(self):
+        if type(self.preceding) == Waaw:
+            self.preceding.form += 'w'
 
 
-class An_(Morpheme):
-    def __init__(self):
-        super().__init__('an')
-        self.peripheral = True
+
+class PeripheralMorpheme(Morpheme):
+    peripheral = True
+    slot = 'minor'
     def mutate(self):
         if re.search(f'[{C}]w$',self.ps):
-            self.preceding.form[-1] = 'O'
+            self.preceding.form = self.preceding.form[:-1] + 'O'
             self.form = self.form[-1:]
-        if re.search(f'[{v+V}]$', self.ps):
-            self.form = self.form[-1:]
-class Ag_(Morpheme):
-    def __init__(self):
-        super().__init__('ag')
-        self.peripheral = True
-    def mutate(self):
-        if re.search(f'[{C}]w$',self.ps):
-            self.preceding.form[-1] = 'O'
-            self.form = self.form[-1:]
-        if re.search(f'[{v+V}]$', self.ps):
+        elif re.search(f'[{v+V}]$', self.ps):
             self.form = self.form[-1:]
 
-class Ah_(Morpheme):
-    def __init__(self):
-        super().__init__("a'")
-        self.peripheral = True
-    def mutate(self):
-        if re.search(f'[{C}]w$',self.ps):
-            self.preceding.form[-1] = 'O'
-            self.form = self.form[-1:]
-        if re.search(f'[{v+V}]$', self.ps):
-            self.form = self.form[-1:]
+class An_(PeripheralMorpheme):
+    default_form = 'an'
+
+class Ag_(PeripheralMorpheme):
+    default_form = 'ag'
+
+class Ah_(PeripheralMorpheme):
+    default_form = 'ah'
+
 
 class Nimperative(Morpheme):
-        def __init__(self):
-            super().__init__('n')
-        def mutate(self):
-            if re.search(f'[{Q}]$', self.ps):
-                e_epenthesis(self.preceding)
-            if self.following.peripheral:
-                self.verb.morphemelist.remove(self.following)
+    default_form = 'n'
+    slot = 'major'
+    def mutate(self):
+        if re.search(f'[{Q}]$', self.ps):
+            self.preceding.e_epenthesis()
+        if self.following.peripheral:
+            self.verb.slots['minor'] = None
+
+
 class Og(Morpheme):
-    def __init__(self):
-            super().__init__('g')
+    default_form = 'g'
+    slot = 'major'
     def mutate(self):
         if self.verb.type == 'vta' and self.verb.mode == 'neutral':
-            e_epenthesis(self.preceding)
-            self.form = ['k']
+            self.preceding.e_epenthesis()
+            self.form = 'k'
         else:
-            o_epenthesis(self.preceding)
+            if re.search(rf'[{v+V}]$', self.ps):
+                self.preceding.form += 'y'
+            if re.search(rf'[{C}]$', self.ps):
+                self.preceding.o_epenthesis()
         if self.following.peripheral:
-            self.verb.morphemelist.remove(self.following)
+            self.verb.slots['minor'] = NullMorpheme()
+
+
+class Gon(Morpheme):
+    default_form = 'gon'
+    slot = 'major'
+    def mutate(self):
+        if self.following.peripheral:
+            self.verb.slots['minor'] = NullMorpheme()
+
+
+class Aangen(Morpheme):
+    default_form = 'AngEn'
+    slot = 'major'
+
+class Naam(Morpheme):
+    default_form = 'nAm'
+    def mutate(self):
+        global current_variants, default_variants
+        if self.verb.variants['shinaang?'] == 'shinaang':
+            self.form = 'nAng'
+            current_variants.append({**default_variants, 'shinaang?': 'shinaam'})
+        elif self.verb.variants['shinaang?'] == 'shinaam':
+            self.form = 'nAm'
+            current_variants.append({**default_variants, 'shinaang?': 'shinaan'})
+        elif self.verb.variants['shinaang?'] == 'shinaan':
+            self.form = 'nAn'
 
 
 
 
-#Morpheme Sets
-def INDEPENDENTCENTRALI(person):
-        if person.locality:
-            if person.name in ['p1','p2']:
-                return Local_singular()
-            if person.person == 1:
-                return Min()
-            else:
-                return Mw()
-        elif person.person in [3,0]:
-            return W3rdperson()
-        elif person.person == 'X':
-            return Mw()
-def INDEPENDENTCENTRALII(person):
-        if person.person == 'X':
-            return Mw()
-        if not person.plurality:
-            return Nsingular()
-        elif person.person == 1:
-            return Min()
-        elif person.plurality:
-            return Naawaa()
-
-def INDEPENDENTCENTRALIII(person):
-    person = person.name
-    d = {'p1p': Naan(),
-         'p21': Naan(),
-         'p2p':Waaw(),
-         'p3p': Waaw()}
-    return d[person]
-def INDEPENDENTCENTRALI_(primary):
-    if primary == p1p:
-        return Min()
-    elif primary == p2p:
-        return Mw()
-    else:
-        return Local_singular()
-def CONJUNCTCENTRALI(person):
-    person = person.name
-    conjunctcentrali = {
-         'p1':Aan(),
-         'p2':An(),
-         'p1p':Aang(),
-         'p21':Ang(),
-         'p2p':Egw(),
-         'pX':Ng(),
-         'p3':D(),
-         'p3p':D(),
-         'p3o':D(),
-         'p3op':D()
-            }
-    return conjunctcentrali[person]
-
-
-def CONJUNCTCENTRALII(person):
-    person = person.name
-    conjunctcentralii = {'p1':Ag(),
-         'p2':Ad(),
-         'p1p':Angid(),
-         'p21':Ang(),
-         'p2p':Egw(),
-         'pX':Ind()}
-    return conjunctcentralii[person]
-def CONJUNCTCENTRALIII(primary):
-    person = primary.name
-    conjunctcentraliii = {'p1p':Aang(),
-                          'p2':An(),
-                          'p2p':Egw()
-            }
-    return conjunctcentraliii[person]
-def CONJUNCTCENTRALIV(primary):
-    if primary == p2:
-        return Aan()
-    elif primary == p2p:
-        return Agogw()
 def PRIMACY(person):
     person = person.name
     primacy = {'p0o':0,
@@ -881,68 +1038,3 @@ def PRIMACY(person):
          'p21':6,
          'p2p':6}
     return primacy[person]
-PERIPHERALS = {
-        p3: Nullmorpheme(),
-        p3p: Ag_(),
-        p3o: An_(),
-        p3op: Ah_()}
-
-
-
-
-#Palatalizes final consonant of morpheme
-def final_palatalize(morpheme):
-    if re.search(f'[{Y}]$', ''.join(morpheme.form)):
-        morpheme.form[-1] = PALATALIZATIONS[morpheme.form[-1]]
-
-#Fortifies initial consonant of morpheme
-def initial_fortify(morpheme):
-    if re.search(f'^[{L}]', ''.join(morpheme.form)):
-        morpheme.form[0] = FORTIFICATIONS[morpheme.form[0]]
-
-#Lenites initial consonant of morpheme
-def initial_lenite(morpheme):
-    if re.search(f'^[{F}]', ''.join(morpheme.form)):
-        morpheme.form[0] = LENITIONS[morpheme.form[0]]
-def initial_vowel_change(morpheme):
-    position = re.search(f'^[{C}]*[{v+V}]', ''.join(morpheme.form)).end() - 1
-    morpheme.form = replace_position(position, morpheme.form, list(INITIALVOWELCHANGES[morpheme.form[position]]))
-
-def initial_vowel_lengthen(morpheme):
-    position = re.search(f'^[{C}]*[{v+V}]', ''.join(morpheme.form)).end() - 1
-    morpheme.form[position] = LENGTHENINGS[morpheme.form[position]]
-def final_vowel_lengthen(morpheme):
-    mf = ''.join(morpheme.form)
-    if re.search(f'[{v}]$', mf):
-        morpheme.form[-1] = LENGTHENINGS[morpheme.form[-1]]
-#Appends an o to the end of a morpheme
-def o_epenthesis(morpheme):
-    mf = ''.join(morpheme.form)
-    if re.search(f'[{C}]$', mf):
-        morpheme.form += 'o'
-
-#Appends an ε to the end of a morpheme
-def e_epenthesis(morpheme):
-    mf = ''.join(morpheme.form)
-    if re.search(f'[{C}]w$', mf):
-        morpheme.form[-1] = 'o'
-    elif re.search(f'[{C}]$', mf):
-        morpheme.form += 'e'
-
-#Appends an i to the end of a morpheme and palatalizes self.preceding consonant, if possible
-def i_epenthesis(morpheme):
-    mf = ''.join(morpheme.form)
-    if re.search(f'[{C}]w$',mf):
-        morpheme.form[-1] = 'o'
-    elif re.search(f'[{C}]$', mf):
-       final_palatalize(morpheme)
-       morpheme.form += 'i'
-#These are the only
-def apocope(morpheme):
-    mf = ''.join(morpheme.form)
-    if re.search(f'[{V}]', mf) or len(re.findall(f'[{v}]', mf)) >2:
-        if re.search(f'[{v}]$', mf):
-            morpheme.form.pop()
-def final_w_loss(morpheme):
-    if re.search(f'[{C}]w$', ''.join(morpheme.form)):
-        morpheme.form.pop()

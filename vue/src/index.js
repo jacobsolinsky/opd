@@ -3,19 +3,19 @@ import VueRouter from 'vue-router'
 import store from './store.js'
 import searchbar from './Views/searchbar.vue'
 import advancedsearch from './Views/advancedsearch.vue'
-import content from './Views/content.vue'
-import sidebar from './Views/sidebar.vue'
-import carousel from './Views/carousel.vue'
-import loginlink from './Views/login-link.vue'
-import mainpage from './Views/mainpage.vue'
-import searchresults from './Views/searchresults.vue'
-import englishsearchresults from './Views/englishsearchresults.vue'
-import mainentry from './Views/mainentry.vue'
-import mainentryedit from './EditViews/mainentryedit.vue'
-import login from './Views/login.vue'
-import collection from './Views/collection.vue'
-import wordpart from './Views/wordpart.vue'
-import CKEditor from '@ckeditor/ckeditor5-vue'
+const content = () => import('./Views/content.vue')
+const sidebar = () => import('./Views/sidebar.vue')
+const carousel = () => import('./Views/carousel.vue')
+const loginlink = () => import('./Views/login-link.vue')
+const mainpage = () => import('./Views/mainpage.vue')
+const searchresults = () => import('./Views/searchresults.vue')
+const englishsearchresults = () => import('./Views/englishsearchresults.vue')
+const mainentry = () => import('./Views/mainentry.vue')
+const mainentryedit = () => import('./EditViews/mainentryedit.vue')
+const login = () => import('./Views/login.vue')
+const collection = () => import('./Views/collection.vue')
+const wordpart = () => import('./Views/wordpart.vue')
+const CKEditor = () => import('@ckeditor/ckeditor5-vue')
 Vue.use(VueRouter)
 Vue.use(CKEditor)
 const routes = [

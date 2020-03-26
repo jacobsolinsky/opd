@@ -1,7 +1,7 @@
 from django.shortcuts import render
 from django.http import HttpResponse, JsonResponse
-from conjugator.htmlmaker import conj_call
-from conjugator.morphemes import ojibwe_lev, todoublevowel
+from conjugator.interface import conj_call
+from conjugator.morphemes import ojibwe_lev, to_double_vowel
 from django.core import serializers
 from dictionary.models import *
 from rest_framework.renderers import JSONRenderer
@@ -46,10 +46,10 @@ def regular_search(request):
     if type in ['ojibwe', 'main_entry']:
         if scope == "inexact":
             all = MainEntry.objects.filter()
-            dvquery = todoublevowel(query)
+            dvquery = to_double_vowel(query)
             all = [a for a in all if a.head_lemma]
             entries = [a for a in all
-                       if ojibwe_lev(todoublevowel(a.head_lemma),
+                       if ojibwe_lev(to_double_vowel(a.head_lemma),
                                      dvquery) < 10]
         else:
             lf = get_lookup_field(type, scope, field)
@@ -82,14 +82,17 @@ def regular_search(request):
 
 def main_entry(request, entry):
     m_e = MainEntry.objects.get(pk="/main-entry/" + entry)
-    conjugation = None
-    if (m_e.stem and m_e.part_of_speech and
-    m_e.part_of_speech.abbrev in ['vai', 'vti', 'vti2', 'vta', 'vii']):
-            conjugation = conj_call(m_e)
     m_e = MainEntrySerializer(m_e).data
-    m_e['conjugation'] = conjugation
     return HttpResponse(JSONRenderer().render(m_e),
                         content_type="application/json")
+
+def main_entry_conjugation(request, entry):
+    m_e = MainEntry.objects.get(pk="/main-entry/" + entry)
+    conjugation = None
+    if (m_e.stem and m_e.part_of_speech and
+    m_e.part_of_speech.abbrev[:3] in ['vai', 'vti', 'vta', 'vii']):
+            conjugation = conj_call(m_e)
+    return JsonResponse(conjugation)
 
 
 def get_csrf_token(request):

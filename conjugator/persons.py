@@ -6,14 +6,31 @@ class Person:
         self.locality = locality
         self.obviacy = obviacy
         self.name = name
+    
+    def more_local(self, other):
+        hierarchy = {
+            2:4,
+            p21:4,
+            1:3,
+            None:2,
+            3:1,
+            0:0, 
+        } 
+        return hierarchy[self] >= \
+        hierarchy[other]
+
+    
+
 class Person21:
-    def __init__(self):
-        pass
-    def __eq__(self, b):
+    @staticmethod
+    def __eq__(b):
         if b in [1, 2, 21]:
             return True
         else:
             return False
+    def __hash__(self):
+        return 1
+
     
 p1 = Person(person = 1,
             plurality = False,
@@ -21,84 +38,105 @@ p1 = Person(person = 1,
             locality = True,
             obviacy = False,
             name = 'p1')
+
 p1p = Person(person = 1,
             plurality = True,
             animacy = True,
             locality = True,
             obviacy = False,
             name = 'p1p') 
+
 p21 = Person(person = Person21(),
             plurality = True,
             animacy = True,
             locality = True,
             obviacy = False,
             name = 'p21')
+
 p2 = Person(person = 2,
             plurality = False,
             animacy = True,
             locality = True,
             obviacy = False,
             name = 'p2')
+
 p2p = Person(person = 2,
             plurality = True,
             animacy = True,
             locality = True,
             obviacy = False,
             name = 'p2p')
+
 p3 = Person(person = 3,
             plurality = False,
             animacy = True,
             locality = False,
             obviacy = False,
             name = 'p3')
+
 p3o = Person(person = 3,
             plurality = False,
             animacy = True,
             locality = False,
             obviacy = True,
             name = 'p3o')
+
 p3op = Person(person = 3,
             plurality = True,
             animacy = True,
             locality = False,
             obviacy = True,
             name = 'p3o')
+
 p3p = Person(person = 3,
             plurality = True,
             animacy = True,
             locality = False,
             obviacy = False,
             name = 'p3p')
+
+p5 = Person(person = 3,
+            plurality = False,
+            animacy = True,
+            locality = False,
+            obviacy = True,
+            name = 'p5')
+
 p0 = Person(person = 0,
             plurality = False,
             animacy = False,
             locality = False,
             obviacy = False,
             name = 'p0')
+
 p0p = Person(person = 0,
             plurality = True,
             animacy = False,
             locality = False,
             obviacy = False,
             name = 'p0p')
+
 p0o = Person(person = 0,
             plurality = False,
             animacy = False,
             locality = False,
             obviacy = True,
             name = 'p0o')
+
 p0op = Person(person = 1,
             plurality = True,
             animacy = False,
             locality = False,
             obviacy = True,
             name = 'p0op')
+
 pX = Person(person = None,
             plurality = False,
             animacy = True,
             locality = True,
             obviacy = False, 
             name = 'pX')
+
 TOPERSON = {'1':p1,
             '1p':p1p,
             '21':p21,

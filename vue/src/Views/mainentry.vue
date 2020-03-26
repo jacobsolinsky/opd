@@ -78,7 +78,7 @@
     <h4 class="panel-title">
       <a class="" role="button" data-toggle="collapse" href="#adtlAudio" aria-expanded="true" aria-controls="adtlAudio">
         <span class="caret"></span>
-        Audio for Basic Forms
+        Additional Audio
       </a>
     </h4>
   </div>
@@ -142,7 +142,6 @@
     </div>
   </div>
 </div>
-
 <div v-if="entry.word_parts" v-html="entry.word_parts">
 </div>
 
@@ -163,7 +162,7 @@
   </div>
 </div>
 
-<div class="panel panel-oj" v-if="entry.conjugation">
+<div class="panel panel-oj" v-if="['vai', 'vti',  'vta', 'vii'].includes(entry.part_of_speech.abbrev.slice(0,3))">
   <div class="panel-heading" role="tab" id="conjugatedFormsHeader">
     <h4 class="panel-title">
       <a class="" role="button" data-toggle="collapse" href="#conjugatedForms" aria-expanded="true" aria-controls="conjugatedForms">
@@ -173,8 +172,7 @@
     </h4>
   </div>
   <div id="conjugatedForms" class="panel-collapse collapse in" role="tabpanel" aria-labelledby="conjugatedFormsHeader" aria-expanded="true">
-    <div class="panel-body"  v-html="entry.conjugation">
-    </div>
+    <orders :details="details" :entryurl='entry.entryurl'></orders>
   </div>
 </div>
 <div class="panel panel-oj" v-if="entry.imageresource_set.length>0 || entry.videoresource_set.length>0 || entry.documentresource_set.length>0">
@@ -217,10 +215,14 @@
 </div>
 </template>
 <script>
-import { EventBus } from './event-bus.js';
+import { EventBus } from './event-bus.js'
+import {BSpinner} from 'bootstrap-vue'
+
 export default {
+  components: {orders: () => import("./conjugator-tables/orders.vue")},
   data(){
-    return {entry:{}}
+    return {entry:{},
+    }
   },
   beforeRouteEnter(to, from, next) {
     fetch(`/json/main-entry/${to.params.entryurl}`)
@@ -236,8 +238,12 @@ export default {
         {'word_family':data.word_family,
          'entryurl': data.url})
         }
-        next(vm => vm.entry = data)
+        next(vm => {
+          vm.entry = data
+          vm.entry.entryurl = to.params.entryurl
+        })
       })
+
   },
   beforeRouteUpdate(to, from, next) {
     fetch(`/json/main-entry/${to.params.entryurl}`)
@@ -254,11 +260,16 @@ export default {
          'entryurl': data.url})
         }
         this.entry = data
+        this.entry.entryurl = to.params.entryurl
       })
   },
-
-  created(){
-
-  }
+  computed: {
+    details(){
+      var [s, l] = [this.entry.stem, this.entry.head_lemma]
+      var type = this.entry.part_of_speech.abbrev.slice(0, 3)
+      var plural_only = ['oon', 'wan', 'oog', 'wag'].includes(l.slice(-3)) && (l === (s.slice(1, -2) + l.slice(-3)))
+      return {plural_only, type}
+    }
+  },
 }
 </script>

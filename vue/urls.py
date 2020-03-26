@@ -11,6 +11,7 @@ urlpatterns = router.urls + [
     path('login', views.login),
     path('json/search', views.regular_search),
     path('json/main-entry/<entry>', views.main_entry),
+    path('json/conjugation/main-entry/<entry>', views.main_entry_conjugation),
     path('json/collection/<id>', views.collection),
     path('json/word-part/<entry>', views.word_part),
     path('get-csrf-token', views.get_csrf_token),

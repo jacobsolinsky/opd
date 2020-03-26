@@ -2,8 +2,8 @@ from django.shortcuts import render
 from .models import MainEntry, Speaker, PartOfSpeech
 from django.http import HttpResponse, JsonResponse
 from django.template import Context
-from conjugator.htmlmaker import conj_call
-from conjugator.morphemes import ojibwe_lev, todoublevowel
+from conjugator.interface import conj_call
+from conjugator.morphemes import ojibwe_lev, to_double_vowel
 from django.core import serializers
 
 import re

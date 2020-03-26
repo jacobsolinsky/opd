@@ -17,13 +17,13 @@ for name in ("entries", "parts_of_speech", "entry_part_of_speech","audios", "ent
              "image_resources", "video_resources", "document_resources", "speakers",
              "video_collections", "image_collections", "document_collections", "videos", "news", "keywords",
              ):
-    with open(f"/Users/jacobsolinsky/programming/opd/opd/database/{name}.json") as f:
+    with open(f"/home/ec2-user/opd/opd/database/{name}.json") as f:
         exec(f"{name} = json.load(f)")
         thing = eval(name)
         for i in eval(name):
             if i is None:
                 thing.remove(i)
-    
+
 
 
 for i in parts_of_speech:
@@ -31,7 +31,7 @@ for i in parts_of_speech:
                      full = i['full'])
     a.save()
 #entered to this point
-    
+
 for i in images:
     a = Image(src = i['src'],
               alt = i['alt'])
@@ -67,27 +67,33 @@ for i in speakers:
 for i in news:
     a = News(title = i['title'], date = i['date'], html = i['html'])
     a.save()
-#entered to this point 
+#entered to this point
+
+#got to this point in amazon
 z = 0
 for i in entries:
         part_of_speech = PartOfSpeech.objects.filter(pk=i['part_of_speech']).first()
         head_speaker = Speaker.objects.filter(pk=i['head_speaker']).first()
         head_audio = Audio.objects.filter(pk=i['head_audio']).first()
         head_image = Image.objects.filter(pk=i['head_image']).first()
-        z+= 1
+        hs = dictionary.models.HistorySet.objects.create(pk=z)
+        hs.save()
         a = MainEntry(url = i['url'],
                       head_lemma = i['head_lemma'],
                       part_of_speech = part_of_speech,
                       head_speaker = head_speaker,
                       head_audio = head_audio,
                       head_image = head_image,
+                      history_set = hs,
                       gloss = i['gloss'],
                       notes = i['notes'],
                       reduplication = i['reduplication'],
-                      indexed = False
+                      indexed = False,
+                      history_set_id=0
                 )
         a.save()
-#entered to this point 
+        z+= 1
+#entered to this point
 for e in entry_entry_paired_with:
     a = MainEntry.objects.get(pk=e[0])
     paired_with = MainEntry.objects.get(pk=e[1])
@@ -103,7 +109,7 @@ for e in entry_entry_redirect:
     redirect = MainEntry.objects.get(pk=e[1])
     a.redirect_inv.add(redirect)
     a.save()
-#entered to this point 
+#entered to this point
 
 for i in sentence_examples:
     entry = MainEntry.objects.get(pk=i['url'])
@@ -112,27 +118,27 @@ for i in sentence_examples:
                         ojibwe = i['ojibwe'],
                         english = i['english'])
     a.save()
-#entered to this point 
+#entered to this point
 for i in audio_for_basic_forms:
     entry = MainEntry.objects.get(pk=i['url'])
     a = AudioForBasicForm(entry = entry,
                         audio_for_basic_forms_index = i['audio_for_basic_forms_index'],
                         ojibwe = i['ojibwe'])
     a.save()
-#entered to this point 
+#entered to this point
 for i in additional_audio:
     entry = MainEntry.objects.get(pk=i['url'])
     a = AdditionalAudio(entry = entry,
                         additional_audio_index = i['additional_audio_index'],
                         ojibwe = i['ojibwe'])
     a.save()
-#entered to this point 
+#entered to this point
 for i in poss:
     a = Poss(abbrev = i['abbrev'],
              full = i['full'])
     a.save()
-#entered to this point 
-    
+#entered to this point
+
 for i in sentence_example_audio_rec:
     sentence_example = SentenceExample.objects.filter(pk=i['sentence_examples_index']).first()
     speaker = Speaker.objects.filter(pk=i['href']).first()
@@ -141,8 +147,8 @@ for i in sentence_example_audio_rec:
                                 speaker = speaker,
                                 audio = audio)
     a.save()
-#entered to this point 
-    
+#entered to this point
+
 for i in audio_for_basic_form_audio_rec:
     z = Audio(regular = i['audio'])
     audio_for_basic_form = AudioForBasicForm.objects.filter(pk=i['audio_for_basic_forms_index']).first()
@@ -152,7 +158,7 @@ for i in audio_for_basic_form_audio_rec:
                                 speaker = speaker,
                                 audio = audio)
     a.save()
-#entered to this point 
+#entered to this point
 for i in additional_audio_audio_rec:
     additional_audio = AdditionalAudio.objects.filter(pk=i['additional_audio_index']).first()
     speaker = Speaker.objects.filter(pk=i['href']['href']).first()
@@ -167,20 +173,20 @@ for i in audio_for_basic_form_pos:
     poss = Poss.objects.get(pk=i['abbrev'])
     audio_for_basic_form.poss.add(poss)
     audio_for_basic_form.save()
-  #entered to this point   
+  #entered to this point
 for i in additional_audio_pos:
     additional_audio = AdditionalAudio.objects.get(pk = i['additional_audio_index'])
     poss = Poss.objects.get(pk=i['abbrev'])
     additional_audio.poss.add(poss)
     additional_audio.save()
-    #entered to this point     
+    #entered to this point
 for i in inflectional_forms:
     entry = MainEntry.objects.get(pk=i['url'])
     a = InflectionalForm(url = entry,
                          inflectional_forms_index = i['inflectional_forms_index'],
                          form = i['form'])
     a.save()
-    #entered to this point     
+    #entered to this point
 for i in inflectional_form_pos:
     inflectional_form = InflectionalForm.objects.get(pk=i['inflectional_forms_index'])
     poss = Poss.objects.get(pk=i['abbrev'])
@@ -202,7 +208,7 @@ for i in document_collections:
                         description = i['description'],
                         body = i['documentbody'],
                         bibliography = i['bibliography'])
-    a.save() 
+    a.save()
 #entered to this point
 for i in video_collections:
     try:
@@ -265,19 +271,19 @@ for i in entry_region:
     r = Region.objects.get(pk=i['abbrev'])
     e = MainEntry.objects.get(pk=i['url'])
     e.region.add(r)
-for entry in entries: 
-    e = MainEntry.objects.get(pk=entry['url']) 
-    e.stem = entry.get('stem') 
-    e.save() 
+for entry in entries:
+    e = MainEntry.objects.get(pk=entry['url'])
+    e.stem = entry.get('stem')
+    e.save()
 with open('/Users/jacobsolinsky/programming/ojibwe/parts_of_speech.json') as f:
     parts_of_speech = json.load(f)
-    for i in parts_of_speech: 
-        a = PartOfSpeech(abbrev=i['abbrev'], 
-        full=i['label'], 
-        description = i['description']) 
-        a.save() 
-        
-        
+    for i in parts_of_speech:
+        a = PartOfSpeech(abbrev=i['abbrev'],
+        full=i['label'],
+        description = i['description'])
+        a.save()
+
+
 word_family_list = []
 for i in word_families:
     if i['head_url'] not in word_family_list: word_family_list.append(i['head_url'])
@@ -290,7 +296,7 @@ for i in WordFamily.objects.all():
     a = WordFamilyPair(member = i.head, kind = "head")
     a.word_family = i
     a.save()
-    
+
 for i in word_families:
     head_entry = WordFamily.objects.get(pk=i['head_url'])
     word_family = WordFamily.objects.get(pk=head_entry)
@@ -323,11 +329,11 @@ for i in keywords:
         b.save()
         for k in j['members']:
             e = MainEntry.objects.filter(pk=k).first()
-            if e is not None: 
+            if e is not None:
                 e.keyword_group = b
                 e.save()
-    
-    
+
+
 with open('/Users/jacobsolinsky/programming/opd/opd/database/ojibwe-indexed-urls') as f:
     for url in json.load(f):
         try:
@@ -348,7 +354,7 @@ with open('/Users/jacobsolinsky/programming/opd/opd/data/all_word_part_entries.j
             e = MainEntry.objects.filter(pk=j).first()
             if e is not None: a.words_that_use_this_part.add(e)
         a.save()
-        
+
 rescrape = """/main-entry/ashkibwaa-na
 /main-entry/aagwaniitaw-vta
 /main-entry/bapasininjii-vta
@@ -379,4 +385,3 @@ rescrape = """/main-entry/ashkibwaa-na
 /main-entry/noosom-vta
 /main-entry/okikitaa-vai
 /main-entry/zhiishiibidis-ni""".split('\n')
-        
