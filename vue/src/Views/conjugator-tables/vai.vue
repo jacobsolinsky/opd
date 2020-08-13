@@ -1,21 +1,32 @@
 <template>
   <table class="conjugation-table">
-    <tbody>
       <tr><th>Subject</th><th>Form</th></tr>
-      <tr v-if="!details.plural_only"><th>Niin</th><td>{{forms['1']}}</td></tr>
-      <tr v-if="!details.plural_only"><th>Giin</th><td>{{forms['2']}}</td></tr>
-      <tr v-if="!details.plural_only"><th>Wiin</th><td>{{forms['3']}}</td></tr>
-      <tr><th>3'</th><td>{{forms["3'"]}}</td></tr>
-      <tr><th>Wiinawaa</th><td>{{forms['3p']}}</td></tr>
-      <tr><th>Niinawind</th><td>{{forms['1p']}}</td></tr>
-      <tr><th>Giinawind</th><td>{{forms['21']}}</td></tr>
-      <tr><th>Giinawaa</th><td>{{forms['2p']}}</td></tr>
-      <tr><th>X</th><td>{{forms['X']}}</td></tr>
-    </tbody>
+      <template v-if="details.imperative">
+        <template v-for='s in imperativeSubjects'>
+              <tr><th>{{actorOjibweNames[s]}}</th><td>{{forms[s]}}</td></tr>
+        </template>
+      </template>
+      <template v-else>
+        <template  v-for='s in subjects'>
+              <tr><th>{{actorOjibweNames[s]}}</th><td>{{forms[s]}}</td></tr>
+        </template>
+      </template>
   </table>
 </template>
 <script>
+import { mapState } from 'vuex'
   export default {
     props: ['forms', 'details'],
+    computed: {
+      ...mapState('actors', ['animateActors', 'inanimateActors', 'singularActors', 'pluralActors', 'actorOjibweNames', 'actorEnglishNames', 'imperativeActors']),
+      subjects() {
+        return this.details.plural_only ? this.pluralActors.filter(v => this.animateActors.includes(v)) : this.animateActors
+      },
+      imperativeSubjects(){
+        return this.details.plural_only ? this.pluralActors.filter(v => this.imperativeActors.includes(v)) : this.imperativeActors
+      },
+    },
   }
 </script>
+<style scoped>
+</style>

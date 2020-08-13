@@ -20,8 +20,19 @@ module.exports = {
         }
       },
       { test: /\.vue$/, use: 'vue-loader' },
-      { test: /\.css$/,use: ['vue-style-loader','css-loader']
-}
+      { test: /\.css$/,use: [
+          'vue-style-loader', 'css-loader'
+        ],
+      },
+      // AND `<style lang="scss">` blocks in `.vue` files
+      {
+        test: /\.scss$/,
+        use: [
+          'vue-style-loader',
+          'css-loader',
+          'sass-loader',
+        ]
+      },
     ]
   },
   plugins: [

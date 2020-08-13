@@ -8,7 +8,12 @@
       {{entry.head_speaker.initials}}</a>
        <span v-if="entry.head_audio" class="badge badge-oj badge-audio-player">
       <div id="audio-player-116840" class="audio-player" :data-file="entry.head_audio.regular" :data-mobile-file="entry.head_audio.regular">
-        <span class="glyphicon glyphicon-volume-up glyphicon-audio-player"></span>
+        <span class="glyphicon glyphicon-volume-up glyphicon-audio-player">
+            <audio>
+              <source :src="entry.head_audio.regular">
+              <source :src="entry.head_audio.mobile">
+            </audio>
+        </span>
         Listen
       </div>
     </span>
@@ -38,38 +43,45 @@
 </p>
 
 <div v-if="entry.basic_audio.length>0" class="panel panel-oj">
-  <div class="panel-heading" role="tab" id="audioBasicFormsHeader">
-    <h4 class="panel-title">
-      <a class="" role="button" data-toggle="collapse" href="#audioBasicForms" aria-expanded="true" aria-controls="audioBasicForms">
-        <span class="caret"></span>
-        Audio for Basic Forms
-      </a>
-    </h4>
-  </div>
-  <div id="audioBasicForms" class="panel-collapse collapse in" role="tabpanel" aria-labelledby="audioBasicFormsHeader" aria-expanded="true">
-    <div class="panel-body">
-      <table class="table table-hover audio-table">
-          <tbody>
-                <tr v-for="audio_form in entry.basic_audio"><td><strong>{{audio_form.ojibwe}}</strong></td>
-                  <td><em>
-                  <span  v-for="pos in audio_form.poss" data-toggle="tooltip" data-placement="top" title="" :data-original-title="pos.ful">{{pos.abbrev +" "}}</span></em>
-                <td class="text-right">
-                  <div v-for="audio_rec in audio_form.audio_rec">
-                    <a :href="audio_rec.speaker.href" class="speaker-initials" data-toggle="modal" data-target="#voiceModal" data-remote="false">
-                      {{audio_rec.speaker.initials}}
-                    </a>
-                    <span class="badge badge-oj badge-audio-player">
-                      <div id="audio-player-116840" class="audio-player" :data-file="audio_rec.audio.regular" :data-mobile-file="audio_rec.audio.mobile">
-                        <span class="glyphicon glyphicon-volume-up glyphicon-audio-player"></span>
-                        Listen
-                      </div>
-                    </span><br>
-                  </div>
-                </td>
-                </tr>
-      </tbody></table>
+  <details open>
+    <summary>
+      <div class="panel-heading" role="tab" id="audioBasicFormsHeader">
+        <h4 class="panel-title">
+            <span class="caret"></span>
+            Audio for Basic Forms
+        </h4>
+      </div>
+    </summary>
+    <div id="audioBasicForms" class="panel-collapse collapse in" role="tabpanel" aria-labelledby="audioBasicFormsHeader" aria-expanded="true">
+      <div class="panel-body">
+        <table class="table table-hover audio-table">
+            <tbody>
+                  <tr v-for="audio_form in entry.basic_audio"><td><strong>{{audio_form.ojibwe}}</strong></td>
+                    <td><em>
+                    <span  v-for="pos in audio_form.poss" data-toggle="tooltip" data-placement="top" title="" :data-original-title="pos.ful">{{pos.abbrev +" "}}</span></em>
+                  <td class="text-right">
+                    <div v-for="audio_rec in audio_form.audio_rec">
+                      <a :href="audio_rec.speaker.href" class="speaker-initials" data-toggle="modal" data-target="#voiceModal" data-remote="false">
+                        {{audio_rec.speaker.initials}}
+                      </a>
+                      <span class="badge badge-oj badge-audio-player">
+                        <div id="audio-player-116840" class="audio-player">
+                          <span class="glyphicon glyphicon-volume-up glyphicon-audio-player">
+                              <audio>
+                                <source :src="audio_rec.audio.regular">
+                                <source :src="audio_rec.audio.mobile">
+                              </audio>
+                          </span>
+                          Listen
+                        </div>
+                      </span><br>
+                    </div>
+                  </td>
+                  </tr>
+        </tbody></table>
+      </div>
     </div>
-  </div>
+  </details>
 </div>
 
 
@@ -95,8 +107,13 @@
                       {{audio_rec.speaker.initials}}
                     </a>
                     <span class="badge badge-oj badge-audio-player">
-                      <div id="audio-player-116840" class="audio-player" :data-file="audio_rec.audio.regular" :data-mobile-file="audio_rec.audio.mobile">
-                        <span class="glyphicon glyphicon-volume-up glyphicon-audio-player"></span>
+                      <div id="audio-player-116840" class="audio-player">
+                        <span class="glyphicon glyphicon-volume-up glyphicon-audio-player">
+                            <audio>
+                              <source :src="audio_rec.audio.regular">
+                              <source :src="audio_rec.audio.mobile">
+                            </audio>
+                        </span>
                         Listen
                       </div>
                     </span><br>
@@ -129,8 +146,13 @@
                   {{audio_rec.speaker.initials}}
                           </a>
                           <span class="badge badge-oj badge-audio-player">
-                                <div id="audio-player-116840" class="audio-player" :data-file="audio_rec.audio.regular" :data-mobile-file="audio_rec.audio.mobile">
-                                  <span class="glyphicon glyphicon-volume-up glyphicon-audio-player"></span>
+                                <div id="audio-player-116840" class="audio-player">
+                                  <span class="glyphicon glyphicon-volume-up glyphicon-audio-player">
+                                      <audio>
+                                        <source :src="audio_rec.audio.regular">
+                                        <source :src="audio_rec.audio.mobile">
+                                      </audio>
+                                  </span>
                                   Listen
                                 </div>
                               </span><br>

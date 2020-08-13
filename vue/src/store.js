@@ -1,5 +1,6 @@
 import Vue from 'vue'
 import Vuex from 'vuex'
+import actors from './store/actors.js'
 Vue.use(Vuex)
 /* eslint-disable no-param-reassign */
 export default new Vuex.Store({
@@ -12,7 +13,7 @@ state: {
   gottenAllVideoresource_set: false,
   gottenAllDocumentresource_set: false,
   gottenAllRelatedwords: false,
-  behindLogin : '/'
+  behindLogin : '/',
 },
 mutations: {
   addAllPartsOfSpeech(state){
@@ -106,6 +107,9 @@ actions: {
             context.commit('addAllRelatedwords')
         }
       }
+  },
+  modules: {
+    actors
   }
 }
 )

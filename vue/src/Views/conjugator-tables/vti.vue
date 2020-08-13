@@ -1,21 +1,35 @@
 <template>
   <table class="conjugation-table">
-    <tbody>
-      <tr><th>Object > Subject</th><th>0</th><th>0p</th></tr>
-      <tr><th>Niin</th><td>{{forms['1']['0'].actor}}</td><td>{{forms['1']['0p'].actor}}</td></tr>
-      <tr><th>Giin</th><td>{{forms['2']['0'].actor}}</td><td>{{forms['2']['0p'].actor}}</td></tr>
-      <tr><th>Wiin</th><td>{{forms['3']['0'].actor}}</td><td>{{forms['3']['0p'].actor}}</td></tr>
-      <tr><th>3'</th><td>{{forms["3'"]['0'].actor}}</td><td>{{forms["3'"]['0p'].actor}}</td></tr>
-      <tr><th>Wiinawaa</th><td>{{forms['3p']['0'].actor}}</td><td>{{forms['3p']['0p'].actor}}</td></tr>
-      <tr><th>Niinawind</th><td>{{forms['1p']['0'].actor}}</td><td>{{forms['1p']['0p'].actor}}</td></tr>
-      <tr><th>Giinawind</th><td>{{forms['21']['0'].actor}}</td><td>{{forms['21']['0p'].actor}}</td></tr>
-      <tr><th>Giinawaa</th><td>{{forms['2p']['0'].actor}}</td><td>{{forms['2p']['0p'].actor}}</td></tr>
-      <tr><th>Indefinite</th><td>{{forms['X']['0'].actor}}</td><td>{{forms['X']['0p'].actor}}</td></tr>
-    </tbody>
+    <tr><th>Subject > Object</th><th>0</th><th>0p</th></tr>
+    <template v-if="details.independent">
+      <template v-for='s in subjects'>
+            <tr><th>{{actorOjibweNames[s]}}</th><td>{{forms[s]['0'].actor}}</td><td>{{forms[s]['0p'].actor}}</td></tr>
+      </template>
+    </template>
+    <template v-else-if="details.conjunct">
+      <template v-for='s in subjects'>
+            <tr><th>{{actorOjibweNames[s]}}</th><td colspan="2">{{forms[s]['0'].actor}}</td></tr>
+      </template>
+    </template>
+    <template v-else-if="details.imperative">
+      <template v-for='s in imperativeSubjects'>
+            <tr><th>{{actorOjibweNames[s]}}</th><td colspan="2">{{forms[s]['0'].actor}}</td></tr>
+      </template>
+    </template>
   </table>
 </template>
 <script>
+import {mapState} from 'vuex'
   export default {
     props: ['forms', 'details'],
+    computed: {
+      ...mapState('actors', ['animateActors', 'inanimateActors', 'singularActors', 'pluralActors', 'actorOjibweNames', 'actorEnglishNames', 'imperativeActors']),
+      subjects() {
+        return this.details.plural_only ? this.pluralActors.filter(v => this.animateActors.includes(v)) : this.animateActors
+      },
+      imperativeSubjects(){
+        return this.details.plural_only ? this.pluralActors.filter(v => this.imperativeActors.includes(v)) : this.imperativeActors
+      },
+    },
   }
 </script>

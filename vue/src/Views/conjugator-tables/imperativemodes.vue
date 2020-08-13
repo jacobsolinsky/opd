@@ -2,30 +2,30 @@
   <b-card>
     <b-tabs card>
       <b-tab title="Immediate">
-        <vaiimp :forms='forms.neutral.true' :details='details' v-if='details.type==="vai"'></vaiimp>
-        <vtiimp :forms='forms.neutral.true' :details='details' v-if='details.type==="vti"'></vtiimp>
-        <vtaimp :forms='forms.neutral.true' :details='details' v-if='details.type==="vta"'></vtaimp>
+        <vai :forms='forms.neutral.true' :details='{...details, imperative:true}' v-if='details.type==="vai"'></vai>
+        <vti :forms='forms.neutral.true' :details='{...details, imperative:true}' v-if='details.type==="vti"'></vti>
+        <vtaimp :forms='forms.neutral.true' :details='{...details, imperative:true}' v-if='details.type==="vta"'></vtaimp>
       </b-tab>
       <b-tab title="Prohibitative">
-        <vaiimp :forms='forms.prohibitative.true' :details='details' v-if='details.type==="vai"'></vaiimp>
-        <vtiimp :forms='forms.prohibitative.true' :details='details' v-if='details.type==="vti"'></vtiimp>
-        <vtaimp :forms='forms.prohibitative.true' :details='details' v-if='details.type==="vta"'></vtaimp>
+        <vai :forms='forms.prohibitative.true' :details='{...details, imperative:true}' v-if='details.type==="vai"'></vai>
+        <vti :forms='forms.prohibitative.true' :details='{...details, imperative:true}' v-if='details.type==="vti"'></vti>
+        <vtaimp :forms='forms.prohibitative.true' :details='{...details, imperative:true}' v-if='details.type==="vta"'></vtaimp>
       </b-tab>
       <b-tab title="Delayed">
-        <vaiimp :forms='forms.delayed.true' :details='details' v-if='details.type==="vai"'></vaiimp>
-        <vtiimp :forms='forms.delayed.true' :details='details' v-if='details.type==="vti"'></vtiimp>
-        <vtaimp :forms='forms.delayed.true' :details='details' v-if='details.type==="vta"'></vtaimp>
+        <vai :forms='forms.delayed.true' :details='{...details, imperative:true}' v-if='details.type==="vai"'></vai>
+        <vti :forms='forms.delayed.true' :details='{...details, imperative:true}' v-if='details.type==="vti"'></vti>
+        <vtaimp :forms='forms.delayed.true' :details='{...details, imperative:true}' v-if='details.type==="vta"'></vtaimp>
       </b-tab>
     </b-tabs>
   </b-card>
 </template>
 <script>
-import vaiimp from './vaiimp.vue'
-import vtiimp from './vtiimp.vue'
+import vai from './vai.vue'
+import vti from './vti.vue'
 import vtaimp from './vtaimp.vue'
 import {BTab, BTabs, BCard} from 'bootstrap-vue'
 export default {
   props: ['forms', 'details'],
-  components: {vaiimp, vtiimp, vtaimp, BTab, BTabs, BCard},
+  components: {vai, vti, vtaimp, BTab, BTabs, BCard},
 }
 </script>

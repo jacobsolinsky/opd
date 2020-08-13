@@ -547,13 +547,11 @@ class Wnegative(Morpheme):
 
 
 class Wdelayed(Morpheme):
-    default_form = 'w'
+    default_form = ''
     slot = 'w_delayed'
     def mutate(self):
         self.preceding.o_epenthesis()
-        if re.search(self.fs, f'^[{C}]'):
-            self.preceding.final_vowel_lengthen()
-            self.form = ''
+        self.preceding.final_vowel_lengthen()
 
 
 class Wdubitative(Morpheme):
@@ -676,8 +674,12 @@ class W0thPerson(Morpheme):
     def mutate(self):
         if type(self.following) == NullMorpheme:
             self.form = ''
-        elif type(self.following) == Dog and type(self.preceding) == Ni_inanimate:
-            self.form = 'wi'
+        elif type(self.following) == Dog:
+            if type(self.preceding) == Ni_inanimate:
+                self.form = 'wi'
+            else:
+                self.preceding.o_epenthesis()
+                self.form = ''
         elif type(self.following) == Ban:
             if re.search(fr'[{C}]$', self.ps):
                 self.form = 'O'

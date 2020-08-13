@@ -91,7 +91,8 @@ class OjibweVerb:
         if self.preterite:
             self.slots['mode'] = Ban(self)
         if self.dubitative:
-            if self.conjunct:
+            #Gets rid of the En in preterite-dubitative verbs, which otherwise behave just like conjunct verbs
+            if self.conjunct and not(self.order == 'independent'):
                 self.slots['en'] = En_dubitative(self)
             elif self.independent:
                 self.slots['mode'] = Dog(self)
@@ -130,8 +131,8 @@ class OjibweVerb:
             cls.select_mode(verb)
             cls.select_minor(verb)
         except SelectionFinished: pass
-    
-    def select_personal_prefix(self): 
+
+    def select_personal_prefix(self):
         pass
     def select_theme_sign(self):
         pass
@@ -210,7 +211,7 @@ class VTA(TransitiveVerb):
             self.subj, self.obj = self.obj, self.subj
             OjibweVerb.conjugate(VTI, self)
             raise SelectionFinished
-        
+
         #Conjugate like a VAI with theme sign Goo
         elif self.subj == p1p and self.obj.person == 2 and not self.imperative or \
         self.subj == pX and self.obj.person != 3:
@@ -218,7 +219,7 @@ class VTA(TransitiveVerb):
             self.subj, self.obj = self.obj, self.subj
             OjibweVerb.conjugate(VAI, self)
             raise SelectionFinished
-        
+
         if self.obj.obviacy and self.subj.locality:
             self.slots['m_obviative'] = M(self)
         if self.independent:
@@ -235,7 +236,7 @@ class VTA(TransitiveVerb):
                 if not self.polarity:
                     self.slots['echo'] = N2ndPerson(self, 'echo')
                     self.slots['2nd_echo'] = N2ndPerson(self, '2nd_echo')
-        
+
         elif self.conjunct:
             if self.subj.locality and not self.obj.locality:
                 self.slots['theme_sign'] = Aa(self, 'theme_sign')
@@ -256,14 +257,14 @@ class VTA(TransitiveVerb):
                 self.slots['theme_sign'] = Aa(self, 'theme_sign')
             elif self.subj.obviacy and self.obj.person == 3:
                 self.slots['theme_sign'] = Go(self)
-        
+
         elif self.imperative:
             if self.obj.person == 3 and not (self.mode == 'neutral' and self.subj in (p2, p2p)):
                 self.slots['theme_sign'] = Aa(self, 'theme_sign')
             elif self.subj == p2 and self.obj.person == 3 and self.mode == 'neutral':
                 self.slots['theme_sign'] = I(self)
             elif self.obj.person == 1:
-                self.slots['theme_sign'] = Shi(self) 
+                self.slots['theme_sign'] = Shi(self)
 
     def select_major(self):
         theme_sign = self.slots['theme_sign']
@@ -325,7 +326,7 @@ class VTA(TransitiveVerb):
                         self.slots['major'] = Aangen(self)
                 elif self.primary == p21:
                     self.slots['major'] = Daa(self)
-                
+
 
     def select_minor(self):
         if self.changed_conjunct:
@@ -501,17 +502,14 @@ class VAI(IntransitiveVerb):
                         p21: Daa
                         }[self.subj](self)
             elif self.mode == "delayed":
-                if self.subj in (p2, p2p):
-                    self.slots['major'] = CONJUNCT_CENTRAL_PRIMARY(self.subj)(self)
-                else:
-                    self.slots['major'] = Daa(self)
+                self.slots['major'] = CONJUNCT_CENTRAL_PRIMARY(self.subj)(self)
             elif self.mode == "prohibitative":
                 self.slots['major'] = {
                         p2: Nimperative,
                         p2p: Gon,
-                        p21: Aangen
+                        p21: Daa,
                         }[self.subj](self)
-        
+
 
 
     def select_minor(self):
@@ -552,7 +550,7 @@ class VII(IntransitiveVerb):
     def select_negative(self):
         if not self.polarity:
             self.slots['negative'] = Sin(self)
-    
+
     def select_major(self):
         if self.independent:
             self.slots['major'] = W0thPerson(self)
@@ -560,22 +558,22 @@ class VII(IntransitiveVerb):
             self.slots['major'] = G(self)
         if self.subj.obviacy:
             self.slots['special'] = Ni_inanimate(self)
-            
+
     def select_mode(self):
         if self.preterite:
             self.slots['mode'] = Ban(self)
         if self.dubitative:
-            if self.conjunct:
+            if self.conjunct and not self.order == 'independent':
                 self.slots['en'] = En_dubitative(self)
             elif self.independent:
                 self.slots['mode'] = Dog(self)
-    
+
     def select_minor(self):
         if not self.order == 'conjunct':
             if self.subj.plurality:
                 self.slots['minor'] = An_(self)
 
-        
+
 
 def vta_independent_slots():
     return OrderedDict({
